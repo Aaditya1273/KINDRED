@@ -9,8 +9,11 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
+import { useAgent } from '../hooks/useAgent';
+
 export const DashboardScreen = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const { logs, isProcessing, runAnalysis } = useAgent();
 
     return (
         <Layout>
@@ -20,8 +23,8 @@ export const DashboardScreen = () => {
                         <Typography variant="label">Welcome back</Typography>
                         <Typography variant="h2">Sovereign User</Typography>
                     </View>
-                    <TouchableOpacity style={styles.profileBadge}>
-                        <Shield size={20} color={theme.colors.primary} />
+                    <TouchableOpacity style={styles.profileBadge} onPress={runAnalysis}>
+                        <Shield size={20} color={isProcessing ? theme.colors.info : theme.colors.primary} />
                     </TouchableOpacity>
                 </View>
 
@@ -46,21 +49,23 @@ export const DashboardScreen = () => {
                 <GlassView style={styles.agentStatus}>
                     <View style={styles.agentRow}>
                         <View style={styles.agentIconContainer}>
-                            <Cpu size={24} color={theme.colors.primary} />
+                            <Cpu size={24} color={isProcessing ? theme.colors.info : theme.colors.primary} />
                         </View>
                         <View style={styles.agentTextContainer}>
                             <Typography variant="body" weight="600">Blind Wealth Manager</Typography>
-                            <Typography variant="caption">Status: Analyzing Yield Ops</Typography>
+                            <Typography variant="caption">
+                                Status: {isProcessing ? 'Processing Logic...' : 'Analyzing Yield Ops'}
+                            </Typography>
                         </View>
                         <View style={styles.pulseContainer}>
-                            <View style={styles.pulse} />
+                            <View style={[styles.pulse, isProcessing && { backgroundColor: theme.colors.info }]} />
                         </View>
                     </View>
 
                     <View style={styles.divider} />
 
                     <Typography variant="caption" color={theme.colors.textSecondary} style={styles.lastAction}>
-                        "Checking confidential FHE pool for insurance optimization. Logic verified on Zama."
+                        "{logs[0]?.decision || 'Scanning Flow DeFi vaults for USDC yields > 8% APR. Slippage check passed.'}"
                     </Typography>
                 </GlassView>
 
