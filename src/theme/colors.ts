@@ -1,21 +1,15 @@
 export const colors = {
-    background: '#000000',
-    surface: '#121212',
-    surfaceLight: '#1E1E1E',
-
-    primary: '#00EF8B', // Flow Green
-    secondary: '#FFD700', // Gold (Zama)
-
+    primary: '#00FFA3',    // Emerald Growth
+    secondary: '#00E0FF',  // Electric Trust
+    background: '#020202', // Obsidian Background
+    surface: '#0D0D0D',    // Surface Cards
     text: '#FFFFFF',
     textSecondary: '#A0A0A0',
     textMuted: '#666666',
-
-    border: '#333333',
+    glassBackground: 'rgba(13, 13, 13, 0.8)',
     glassBorder: 'rgba(255, 255, 255, 0.1)',
-    glassBackground: 'rgba(255, 255, 255, 0.05)',
-
-    success: '#00EF8B',
+    success: '#00FFA3',
+    warning: '#FFB800',
     error: '#FF4B4B',
-    warning: '#FFD700',
-    info: '#0090FF', // Filecoin Blue
+    info: '#00E0FF',
 };
