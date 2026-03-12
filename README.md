@@ -70,22 +70,53 @@ graph TD
 
 ## 🚀 Getting Started
 
-### 1. The Agent Manifest (`agent.json`)
+### 1. The Agent Manifest (`src/agents/manifest.ts`)
 KINDRED is governed by an explicit manifest that defines its boundaries:
-```json
-{
-  "agent_id": "kindred-alpha-01",
-  "capabilities": ["yield_optimization", "risk_assessment"],
-  "safety_guardrails": {
-    "max_slippage": 0.005,
-    "max_daily_drawdown": 0.02
+```typescript
+export const defaultManifest: AgentManifest = {
+  agent_id: "kindred-alpha-01",
+  capabilities: ["yield_optimization", "risk_assessment"],
+  safety_guardrails: {
+    max_slippage: 0.005,
+    max_daily_drawdown: 0.02
   }
-}
+};
 ```
 
-### 2. Proof of Execution (`agent_log.json`)
-Every decision is verifiable. The `agent_log.json` provides a cryptographically signed receipt of the agent's logic:
+### 2. Proof of Execution (`src/agents/agentService.ts`)
+Every decision is verifiable. The `agent_log.json` logic provides a cryptographically signed receipt of the agent's logic:
 > *"I attempted to swap on Flow, but slippage was too high (0.8%), so I moved the task to a scheduled window 2 hours from now."*
+
+---
+
+## 🛠 Project Structure
+
+- `src/agents`: Agent logic, manifests, and logging.
+- `src/components`: Premium UI design system (Glassmorphism, Typography).
+- `src/hooks`: `useAgent` unified autonomous logic loop.
+- `src/navigation`: React Navigation setup.
+- `src/screens`: Feature-rich screens (Dashboard, Portfolio, Logs).
+- `src/services`: Integrations for Flow, Zama FHE, Lit, and Storacha.
+- `src/theme`: Design tokens (Colors, Spacing).
+
+---
+
+## 🏁 Running Locally
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Start Expo**:
+   ```bash
+   npm run start
+   ```
+
+3. **Explore**:
+   - Use the **Dashboard** to monitor active autonomy.
+   - Check **Portfolio** for asset distribution.
+   - View **Execution Logs** for cryptographic transparency.
 
 ---
 

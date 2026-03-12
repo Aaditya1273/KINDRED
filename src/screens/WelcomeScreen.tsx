@@ -1,18 +1,23 @@
 import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Layout } from '../components/Layout';
 import { Typography } from '../components/Typography';
 import { Button } from '../components/Button';
 import { theme } from '../theme';
 import { GlassView } from '../components/GlassView';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 export const WelcomeScreen = () => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
     return (
         <Layout>
             <View style={styles.content}>
                 <View style={styles.header}>
                     <Image
-                        source={require('../../assets/adaptive-icon.png')} // Fallback until logo is moved
+                        source={require('../../assets/logo.png')}
                         style={styles.logo}
                         resizeMode="contain"
                     />
@@ -34,7 +39,7 @@ export const WelcomeScreen = () => {
                         title="Get Started"
                         variant="primary"
                         size="lg"
-                        onPress={() => { }}
+                        onPress={() => navigation.navigate('Dashboard')}
                     />
                     <Button
                         title="Learn More"
