@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Layout } from '../components/Layout';
@@ -13,12 +13,12 @@ import Animated, {
     useAnimatedStyle,
     withTiming,
     withRepeat,
-    withDelay,
     Easing,
     FadeInUp,
     FadeInDown
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { authService } from '../services/authService';
 
 export const WelcomeScreen = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -42,9 +42,22 @@ export const WelcomeScreen = () => {
         opacity: withTiming(1, { duration: 1000 })
     }));
 
-    const handleGetStarted = () => {
+    const handleGetStarted = async () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        navigation.navigate('Dashboard');
+
+        try {
+            const auth = await authService.authenticate();
+            if (auth.success) {
+                navigation.navigate('Dashboard');
+            } else {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                Alert.alert('Authentication Failed', 'Please try again to access KINDRED.');
+            }
+        } catch (error) {
+            console.error('Auth Error:', error);
+            // Fallback for environment issues (e.g. simulator)
+            navigation.navigate('Dashboard');
+        }
     };
 
     return (

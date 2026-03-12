@@ -1,3 +1,7 @@
+import React from 'react';
+import { StyleSheet, View, SafeAreaView, StatusBar } from 'react-native';
+import { theme } from '../theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 interface LayoutProps {

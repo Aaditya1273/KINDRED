@@ -8,91 +8,127 @@ import { Activity, Shield, TrendingUp, Cpu } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-
 import { useAgent } from '../hooks/useAgent';
+import Animated, {
+    FadeInUp,
+    FadeInRight,
+    Layout as ReanimatedLayout,
+    FadeIn
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+
+const AnimatedGlassView = Animated.createAnimatedComponent(GlassView);
 
 export const DashboardScreen = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { logs, isProcessing, runAnalysis } = useAgent();
 
+    const handleAction = (callback: () => void) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        callback();
+    };
+
+    const handleRunAnalysis = () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        runAnalysis();
+    };
+
     return (
         <Layout>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-                <View style={styles.header}>
+                <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
                     <View>
                         <Typography variant="label">Welcome back</Typography>
                         <Typography variant="h2">Sovereign User</Typography>
                     </View>
-                    <TouchableOpacity style={styles.profileBadge} onPress={runAnalysis}>
+                    <TouchableOpacity
+                        style={styles.profileBadge}
+                        onPress={handleRunAnalysis}
+                    >
                         <Shield size={20} color={isProcessing ? theme.colors.info : theme.colors.primary} />
                     </TouchableOpacity>
-                </View>
+                </Animated.View>
 
-                <TouchableOpacity onPress={() => navigation.navigate('Portfolio')}>
-                    <GlassView style={styles.balanceContainer}>
-                        <Typography variant="label">Total Managed Assets</Typography>
-                        <View style={styles.balanceRow}>
-                            <Typography variant="h1">$124,800.00</Typography>
-                            <View style={styles.trendRow}>
-                                <TrendingUp size={16} color={theme.colors.success} />
-                                <Typography variant="caption" color={theme.colors.success} style={{ marginLeft: 4 }}>+8.5%</Typography>
+                <Animated.View entering={FadeInUp.delay(200).duration(600)}>
+                    <TouchableOpacity onPress={() => handleAction(() => navigation.navigate('Portfolio'))}>
+                        <GlassView style={styles.balanceContainer}>
+                            <Typography variant="label">Total Managed Assets</Typography>
+                            <View style={styles.balanceRow}>
+                                <Typography variant="h1">$124,800.00</Typography>
+                                <View style={styles.trendRow}>
+                                    <TrendingUp size={16} color={theme.colors.success} />
+                                    <Typography variant="caption" color={theme.colors.success} style={{ marginLeft: 4 }}>+8.5%</Typography>
+                                </View>
                             </View>
-                        </View>
-                    </GlassView>
-                </TouchableOpacity>
+                        </GlassView>
+                    </TouchableOpacity>
+                </Animated.View>
 
-                <View style={styles.sectionHeader}>
+                <Animated.View entering={FadeInUp.delay(400).duration(600)} style={styles.sectionHeader}>
                     <Typography variant="h3">Agent Activity</Typography>
                     <Typography variant="caption">Autonomous Logic Monitoring</Typography>
-                </View>
+                </Animated.View>
 
-                <GlassView style={styles.agentStatus}>
-                    <View style={styles.agentRow}>
-                        <View style={styles.agentIconContainer}>
-                            <Cpu size={24} color={isProcessing ? theme.colors.info : theme.colors.primary} />
+                <Animated.View entering={FadeInUp.delay(500).duration(600)}>
+                    <GlassView style={styles.agentStatus}>
+                        <View style={styles.agentRow}>
+                            <View style={styles.agentIconContainer}>
+                                <Cpu size={24} color={isProcessing ? theme.colors.info : theme.colors.primary} />
+                            </View>
+                            <View style={styles.agentTextContainer}>
+                                <Typography variant="body" weight="600">Blind Wealth Manager</Typography>
+                                <Typography variant="caption">
+                                    Status: {isProcessing ? 'Processing Logic...' : 'Analyzing Yield Ops'}
+                                </Typography>
+                            </View>
+                            <View style={styles.pulseContainer}>
+                                <View style={[styles.pulse, isProcessing && { backgroundColor: theme.colors.info }]} />
+                            </View>
                         </View>
-                        <View style={styles.agentTextContainer}>
-                            <Typography variant="body" weight="600">Blind Wealth Manager</Typography>
-                            <Typography variant="caption">
-                                Status: {isProcessing ? 'Processing Logic...' : 'Analyzing Yield Ops'}
+
+                        <View style={styles.divider} />
+
+                        <Animated.View entering={FadeIn.key(logs[0]?.timestamp || 'default')}>
+                            <Typography variant="caption" color={theme.colors.textSecondary} style={styles.lastAction}>
+                                "{logs[0]?.decision || 'Scanning Flow DeFi vaults for USDC yields > 8% APR. Slippage check passed.'}"
                             </Typography>
-                        </View>
-                        <View style={styles.pulseContainer}>
-                            <View style={[styles.pulse, isProcessing && { backgroundColor: theme.colors.info }]} />
-                        </View>
-                    </View>
+                        </Animated.View>
+                    </GlassView>
+                </Animated.View>
 
-                    <View style={styles.divider} />
-
-                    <Typography variant="caption" color={theme.colors.textSecondary} style={styles.lastAction}>
-                        "{logs[0]?.decision || 'Scanning Flow DeFi vaults for USDC yields > 8% APR. Slippage check passed.'}"
-                    </Typography>
-                </GlassView>
-
-                <View style={styles.sectionHeader}>
+                <Animated.View entering={FadeInUp.delay(600).duration(600)} style={styles.sectionHeader}>
                     <Typography variant="h3">Strategic Assets</Typography>
-                </View>
+                </Animated.View>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.assetsScroll}>
-                    <GlassView style={styles.assetCard}>
-                        <Typography variant="label">Flow USDC</Typography>
-                        <Typography variant="h3">$84,000</Typography>
-                        <Typography variant="caption" color={theme.colors.success}>+4.2% (7d)</Typography>
-                    </GlassView>
+                    <Animated.View entering={FadeInRight.delay(700).duration(600)}>
+                        <GlassView style={styles.assetCard}>
+                            <Typography variant="label">Flow USDC</Typography>
+                            <Typography variant="h3">$84,000</Typography>
+                            <Typography variant="caption" color={theme.colors.success}>+4.2% (7d)</Typography>
+                        </GlassView>
+                    </Animated.View>
 
-                    <GlassView style={[styles.assetCard, { marginLeft: theme.spacing.md }]}>
-                        <Typography variant="label">fhEVM Pool</Typography>
-                        <Typography variant="h3">$40,800</Typography>
-                        <Typography variant="caption" color={theme.colors.info}>Confidential</Typography>
-                    </GlassView>
+                    <Animated.View entering={FadeInRight.delay(800).duration(600)}>
+                        <GlassView style={[styles.assetCard, { marginLeft: theme.spacing.md }]}>
+                            <Typography variant="label">fhEVM Pool</Typography>
+                            <Typography variant="h3">$40,800</Typography>
+                            <Typography variant="caption" color={theme.colors.info}>Confidential</Typography>
+                        </GlassView>
+                    </Animated.View>
                 </ScrollView>
 
-                <TouchableOpacity style={styles.logsLink} onPress={() => navigation.navigate('AgentLogs')}>
-                    <Activity size={18} color={theme.colors.primary} />
-                    <Typography variant="body" weight="500" color={theme.colors.primary} style={{ marginLeft: 8 }}>
-                        View Cryptographic Execution Logs
-                    </Typography>
-                </TouchableOpacity>
+                <Animated.View entering={FadeInUp.delay(1000).duration(600)}>
+                    <TouchableOpacity
+                        style={styles.logsLink}
+                        onPress={() => handleAction(() => navigation.navigate('AgentLogs'))}
+                    >
+                        <Activity size={18} color={theme.colors.primary} />
+                        <Typography variant="body" weight="500" color={theme.colors.primary} style={{ marginLeft: 8 }}>
+                            View Cryptographic Execution Logs
+                        </Typography>
+                    </TouchableOpacity>
+                </Animated.View>
             </ScrollView>
         </Layout>
     );

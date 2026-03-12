@@ -7,6 +7,12 @@ import { GlassView } from '../components/GlassView';
 import { agentService, AgentLog } from '../agents/agentService';
 import { ChevronLeft, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import Animated, {
+    FadeInUp,
+    Layout as ReanimatedLayout,
+    FadeIn
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 export const AgentLogsScreen = () => {
     const [logs, setLogs] = useState<AgentLog[]>([]);
@@ -16,36 +22,41 @@ export const AgentLogsScreen = () => {
         setLogs(agentService.getLatestLogs());
     }, []);
 
-    const renderItem = ({ item }: { item: AgentLog }) => (
-        <GlassView style={styles.logCard}>
-            <View style={styles.logHeader}>
-                <View style={styles.statusRow}>
-                    {item.status === 'executed' ? (
-                        <CheckCircle size={16} color={theme.colors.success} />
-                    ) : item.status === 'scheduled' ? (
-                        <Clock size={16} color={theme.colors.warning} />
-                    ) : (
-                        <AlertCircle size={16} color={theme.colors.error} />
-                    )}
-                    <Typography variant="label" style={{ marginLeft: 6 }}>{item.status}</Typography>
+    const renderItem = ({ item, index }: { item: AgentLog, index: number }) => (
+        <Animated.View entering={FadeInUp.delay(index * 100).duration(600)} layout={ReanimatedLayout.springify()}>
+            <GlassView style={styles.logCard}>
+                <View style={styles.logHeader}>
+                    <View style={styles.statusRow}>
+                        {item.status === 'executed' ? (
+                            <CheckCircle size={16} color={theme.colors.success} />
+                        ) : item.status === 'scheduled' ? (
+                            <Clock size={16} color={theme.colors.warning} />
+                        ) : (
+                            <AlertCircle size={16} color={theme.colors.error} />
+                        )}
+                        <Typography variant="label" style={{ marginLeft: 6 }}>{item.status}</Typography>
+                    </View>
+                    <Typography variant="caption">{new Date(item.timestamp).toLocaleTimeString()}</Typography>
                 </View>
-                <Typography variant="caption">{new Date(item.timestamp).toLocaleTimeString()}</Typography>
-            </View>
 
-            <Typography variant="body" weight="600" style={styles.actionTitle}>{item.action}</Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>{item.decision}</Typography>
+                <Typography variant="body" weight="600" style={styles.actionTitle}>{item.action}</Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>{item.decision}</Typography>
 
-            <View style={styles.hashContainer}>
-                <FileText size={12} color={theme.colors.textMuted} />
-                <Typography variant="label" style={styles.hashText}>{item.verification_hash}</Typography>
-            </View>
-        </GlassView>
+                <View style={styles.hashContainer}>
+                    <FileText size={12} color={theme.colors.textMuted} />
+                    <Typography variant="label" style={styles.hashText}>{item.verification_hash}</Typography>
+                </View>
+            </GlassView>
+        </Animated.View>
     );
 
     return (
         <Layout>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    navigation.goBack();
+                }}>
                     <ChevronLeft size={24} color={theme.colors.text} />
                 </TouchableOpacity>
                 <Typography variant="h2" style={styles.title}>Execution Logs</Typography>
