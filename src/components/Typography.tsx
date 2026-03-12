@@ -5,7 +5,8 @@ import { theme } from '../theme';
 interface TypographyProps extends TextProps {
     variant?: 'h1' | 'h2' | 'h3' | 'body' | 'caption' | 'label';
     color?: string;
-    weight?: 'normal' | 'bold' | '600' | '500';
+    weight?: 'normal' | 'bold' | '600' | '500' | '900';
+    family?: 'System' | 'JetBrainsMono' | 'Inter';
 }
 
 export const Typography: React.FC<TypographyProps> = ({
@@ -14,6 +15,7 @@ export const Typography: React.FC<TypographyProps> = ({
     variant = 'body',
     color = theme.colors.text,
     weight,
+    family = 'System',
     ...props
 }) => {
     return (
@@ -23,6 +25,7 @@ export const Typography: React.FC<TypographyProps> = ({
                 styles[variant],
                 { color },
                 weight ? { fontWeight: weight } : null,
+                family === 'JetBrainsMono' ? { fontFamily: 'monospace' } : null, // Fallback to monospace for demo
                 style
             ]}
             {...props}
@@ -34,7 +37,7 @@ export const Typography: React.FC<TypographyProps> = ({
 
 const styles = StyleSheet.create({
     base: {
-        fontFamily: 'System', // Will use Google Fonts later if needed
+        fontFamily: 'System',
     },
     h1: {
         fontSize: 32,

@@ -5,13 +5,14 @@ import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { AgentLogsScreen } from '../screens/AgentLogsScreen';
 import { PortfolioScreen } from '../screens/PortfolioScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 
 export type RootStackParamList = {
     Welcome: undefined;
-    Login: undefined;
     Dashboard: undefined;
     Portfolio: undefined;
     AgentLogs: undefined;
+    Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -29,6 +30,7 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Dashboard" component={DashboardScreen} />
                 <Stack.Screen name="AgentLogs" component={AgentLogsScreen} />
                 <Stack.Screen name="Portfolio" component={PortfolioScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
