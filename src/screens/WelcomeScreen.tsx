@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,46 +8,94 @@ import { Button } from '../components/Button';
 import { theme } from '../theme';
 import { GlassView } from '../components/GlassView';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    withRepeat,
+    withDelay,
+    Easing,
+    FadeInUp,
+    FadeInDown
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 export const WelcomeScreen = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+    // Pulse animation for logo
+    const pulse = useSharedValue(1);
+
+    useEffect(() => {
+        pulse.value = withRepeat(
+            withTiming(1.15, {
+                duration: 2000,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+            }),
+            -1,
+            true
+        );
+    }, []);
+
+    const logoStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: pulse.value }],
+        opacity: withTiming(1, { duration: 1000 })
+    }));
+
+    const handleGetStarted = () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        navigation.navigate('Dashboard');
+    };
+
     return (
         <Layout>
             <View style={styles.content}>
-                <View style={styles.header}>
-                    <Image
-                        source={require('../../assets/logo.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
+                <Animated.View
+                    entering={FadeInUp.duration(1000).springify()}
+                    style={styles.header}
+                >
+                    <Animated.View style={[styles.logoContainer, logoStyle]}>
+                        <Image
+                            source={require('../../assets/logo.png')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                    </Animated.View>
                     <Typography variant="h1" style={styles.title}>KINDRED</Typography>
                     <Typography variant="caption" style={styles.subtitle}>
                         Kinetic Intelligence & Networked Decentralized Real-time Data
                     </Typography>
-                </View>
+                </Animated.View>
 
-                <GlassView style={styles.visionContainer}>
-                    <Typography variant="h3" style={styles.visionTitle}>The World’s First Autonomous Personal Hedge Fund</Typography>
-                    <Typography variant="body" color={theme.colors.textSecondary}>
-                        Elite financial stewardship through privacy-preserving AI. Managed by you, executed autonomously.
-                    </Typography>
-                </GlassView>
+                <Animated.View
+                    entering={FadeInDown.delay(400).duration(1000).springify()}
+                    style={styles.visionWrapper}
+                >
+                    <GlassView style={styles.visionContainer}>
+                        <Typography variant="h3" style={styles.visionTitle}>The World’s First Autonomous Personal Hedge Fund</Typography>
+                        <Typography variant="body" color={theme.colors.textSecondary}>
+                            Elite financial stewardship through privacy-preserving AI. Managed by you, executed autonomously.
+                        </Typography>
+                    </GlassView>
+                </Animated.View>
 
-                <View style={styles.footer}>
+                <Animated.View
+                    entering={FadeInDown.delay(800).duration(1000).springify()}
+                    style={styles.footer}
+                >
                     <Button
                         title="Get Started"
                         variant="primary"
                         size="lg"
-                        onPress={() => navigation.navigate('Dashboard')}
+                        onPress={handleGetStarted}
                     />
                     <Button
                         title="Learn More"
                         variant="glass"
                         style={{ marginTop: theme.spacing.md }}
-                        onPress={() => { }}
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                     />
-                </View>
+                </Animated.View>
             </View>
         </Layout>
     );
@@ -63,23 +111,36 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: theme.spacing.xl,
     },
-    logo: {
-        width: 100,
-        height: 100,
+    logoContainer: {
+        shadowColor: theme.colors.primary,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
         marginBottom: theme.spacing.lg,
+    },
+    logo: {
+        width: 120,
+        height: 120,
     },
     title: {
         color: theme.colors.primary,
+        letterSpacing: 4,
+        fontWeight: '900',
     },
     subtitle: {
         textAlign: 'center',
         marginTop: theme.spacing.xs,
+        opacity: 0.7,
+    },
+    visionWrapper: {
+        marginVertical: theme.spacing.xl,
     },
     visionContainer: {
-        marginVertical: theme.spacing.xl,
+        padding: theme.spacing.lg,
     },
     visionTitle: {
         marginBottom: theme.spacing.sm,
+        lineHeight: 28,
     },
     footer: {
         marginBottom: theme.spacing.xl,
