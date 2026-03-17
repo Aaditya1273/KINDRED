@@ -58,3 +58,4 @@ export function clearAgentMemory(): void {
   storage.delete(MEMORY_KEY);
   storage.delete('kindred_latest_cid');
 }
+// Note: MMKV uses .delete() — confirmed against react-native-mmkv API
