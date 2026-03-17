@@ -1,0 +1,127 @@
+{
+  "expo": {
+    "name": "native",
+    "slug": "appkit",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/2d3ad657-c612-4f65-ba0f-62c277388fa6"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "owner": "nacho.reown",
+    "assetBundlePatterns": ["**/*"],
+    "plugins": ["./expo-plugins/installed-wallets.js"],
+    "ios": {
+      "buildNumber": "1",
+      "bundleIdentifier": "com.walletconnect.web3modal.rnsdk",
+      "supportsTablet": true,
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "metamask",
+          "trust",
+          "safe",
+          "rainbow",
+          "uniswap",
+          "zerion",
+          "imtokenv2",
+          "argent",
+          "spot",
+          "omni",
+          "dfw",
+          "tpoutside",
+          "robinhood-wallet",
+          "frontier",
+          "blockchain-wallet",
+          "safepalwallet",
+          "bitkeep",
+          "zengo",
+          "oneinch",
+          "bnc",
+          "exodus",
+          "ledgerlive",
+          "mewwallet",
+          "awallet",
+          "keyring",
+          "lobstr",
+          "ontoprovider",
+          "mathwallet",
+          "unstoppabledomains",
+          "obvious",
+          "fireblocks-wc",
+          "ambire",
+          "internetmoney",
+          "walletnow",
+          "bitcoincom",
+          "metamask",
+          "trust",
+          "safe",
+          "rainbow",
+          "uniswap",
+          "zerion",
+          "imtokenv2",
+          "argent",
+          "spot",
+          "omni",
+          "dfw",
+          "tpoutside",
+          "robinhood-wallet",
+          "frontier",
+          "blockchain-wallet",
+          "safepalwallet",
+          "bitkeep",
+          "zengo",
+          "oneinch",
+          "bnc",
+          "exodus",
+          "ledgerlive",
+          "mewwallet",
+          "awallet",
+          "keyring",
+          "lobstr",
+          "ontoprovider",
+          "mathwallet",
+          "unstoppabledomains",
+          "obvious",
+          "fireblocks-wc",
+          "ambire",
+          "internetmoney",
+          "walletnow",
+          "bitcoincom"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "versionCode": 1,
+      "package": "com.reown.appkit.expo",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro"
+    },
+    "experiments": {
+      "baseUrl": "."
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2325cd86-ac2f-4ecc-a094-6bb2276f2e8a"
+      }
+    }
+  }
+}

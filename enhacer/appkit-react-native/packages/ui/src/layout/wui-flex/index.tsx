@@ -1,0 +1,60 @@
+import { type LayoutChangeEvent, type StyleProp, type ViewStyle, View } from 'react-native';
+
+import type {
+  FlexAlignType,
+  FlexDirectionType,
+  FlexGrowType,
+  FlexJustifyContentType,
+  FlexShrinkType,
+  FlexWrapType,
+  SpacingType
+} from '../../utils/TypesUtil';
+import { UiUtil } from '../../utils/UiUtil';
+
+export interface FlexViewProps {
+  children?: React.ReactNode;
+  onLayout?: (event: LayoutChangeEvent) => void;
+  flexDirection?: FlexDirectionType;
+  flexWrap?: FlexWrapType;
+  flexGrow?: FlexGrowType;
+  flexShrink?: FlexShrinkType;
+  alignItems?: FlexAlignType;
+  alignSelf?: FlexAlignType;
+  rowGap?: SpacingType;
+  gap?: SpacingType;
+  columnGap?: SpacingType;
+  justifyContent?: FlexJustifyContentType;
+  padding?: SpacingType | SpacingType[];
+  margin?: SpacingType | SpacingType[];
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+}
+
+export function FlexView(props: FlexViewProps) {
+  const styles: ViewStyle = {
+    flexDirection: props.flexDirection,
+    flexWrap: props.flexWrap,
+    flexGrow: props.flexGrow,
+    flexShrink: props.flexShrink,
+    alignItems: props.alignItems,
+    alignSelf: props.alignSelf,
+    justifyContent: props.justifyContent,
+    rowGap: props.rowGap && UiUtil.getSpacingStyles(props.rowGap),
+    gap: props.gap && UiUtil.getSpacingStyles(props.gap),
+    columnGap: props.columnGap && UiUtil.getSpacingStyles(props.columnGap),
+    paddingTop: props.padding && UiUtil.getSpacingStyles(props.padding, 0),
+    paddingRight: props.padding && UiUtil.getSpacingStyles(props.padding, 1),
+    paddingBottom: props.padding && UiUtil.getSpacingStyles(props.padding, 2),
+    paddingLeft: props.padding && UiUtil.getSpacingStyles(props.padding, 3),
+    marginTop: props.margin && UiUtil.getSpacingStyles(props.margin, 0),
+    marginRight: props.margin && UiUtil.getSpacingStyles(props.margin, 1),
+    marginBottom: props.margin && UiUtil.getSpacingStyles(props.margin, 2),
+    marginLeft: props.margin && UiUtil.getSpacingStyles(props.margin, 3)
+  };
+
+  return (
+    <View onLayout={props.onLayout} style={[styles, props.style]} testID={props.testID}>
+      {props.children}
+    </View>
+  );
+}
