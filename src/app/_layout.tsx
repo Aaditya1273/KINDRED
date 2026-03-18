@@ -1,7 +1,8 @@
 import 'text-encoding';
 import 'react-native-get-random-values';
-import '@walletconnect/react-native-compat';
+// appkit-storage MUST be first — installs localStorage polyfill before walletconnect touches it
 import '@/lib/appkit-storage';
+import '@walletconnect/react-native-compat';
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
 global.process = require('process');
