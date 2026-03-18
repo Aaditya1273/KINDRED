@@ -5,11 +5,9 @@
  */
 import React, { useEffect, useRef } from 'react';
 import {
-    View,
-    ScrollView,
-    StyleSheet,
     RefreshControl,
     Platform,
+    StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -22,7 +20,7 @@ import Animated, {
     withSpring,
     Easing,
 } from 'react-native-reanimated';
-import { Text } from '@/components/ui';
+import { Text, View, ScrollView } from '@/components/ui';
 import { Card, PressableCard } from '@/components/ui/card';
 import { AppKitButton, useAccount } from '@reown/appkit-react-native';
 import { TrendingUp, TrendingDown, Zap, ArrowUpRight, ArrowDownLeft, RefreshCw } from 'lucide-react-native';

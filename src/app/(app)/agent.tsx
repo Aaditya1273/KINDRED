@@ -4,18 +4,15 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    View,
-    ScrollView,
-    TextInput,
-    StyleSheet,
     KeyboardAvoidingView,
     Platform,
-    Pressable,
     FlatList,
+    StyleSheet,
+    type ScrollView as RNScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Text } from '@/components/ui';
+import { Text, View, ScrollView, Pressable, TextInput } from '@/components/ui';
 import { Card } from '@/components/ui/card';
 import { useAgentStore } from '@/lib/agent/use-agent-store';
 import { useAccount } from '@reown/appkit-react-native';
@@ -86,7 +83,7 @@ export default function AgentScreen() {
     ]);
     const [input, setInput] = useState('');
     const [showLogs, setShowLogs] = useState(false);
-    const scrollRef = useRef<ScrollView>(null);
+    const scrollRef = useRef<RNScrollView>(null);
 
     useEffect(() => { loadMemory(); }, []);
 

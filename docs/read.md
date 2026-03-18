@@ -11,7 +11,7 @@ KINDRED is an AI hedge fund agent.
 The UI must feel:
 - Alive (AI is working in background)
 - Calm (not cluttered)
-- Trustworthy (clear + transparent)
+- Trustworthy (clear + some transparent)
 
 ---
 

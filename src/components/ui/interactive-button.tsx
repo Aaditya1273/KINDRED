@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, TouchableOpacityProps, StyleSheet } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -39,14 +39,26 @@ export const InteractiveButton: React.FC<InteractiveButtonProps> = ({
     };
 
     return (
-        <AnimatedTouchableOpacity
+        <TouchableOpacity
             activeOpacity={0.8}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
-            style={[animatedStyle, style]}
+            style={style}
             {...props}
         >
-            {children}
-        </AnimatedTouchableOpacity>
+            <Animated.View style={[animatedStyle, styles.content]}>
+                {children}
+            </Animated.View>
+        </TouchableOpacity>
     );
 };
+
+const styles = StyleSheet.create({
+    content: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+    },
+});

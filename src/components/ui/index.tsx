@@ -15,14 +15,22 @@ export * from './select';
 export * from './text';
 export * from './utils';
 
-// export base components from react-native
-export {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  TouchableOpacity,
-  View,
+import {
+  ActivityIndicator as RNActivityIndicator,
+  Pressable as RNPressable,
+  ScrollView as RNScrollView,
+  TextInput as RNTextInput,
+  TouchableOpacity as RNTouchableOpacity,
+  View as RNView,
 } from 'react-native';
+
+export const ActivityIndicator = withUniwind(RNActivityIndicator);
+export const Pressable = withUniwind(RNPressable);
+export const ScrollView = withUniwind(RNScrollView);
+export const TextInput = withUniwind(RNTextInput);
+export const TouchableOpacity = withUniwind(RNTouchableOpacity);
+export const View = withUniwind(RNView);
+
 export { SafeAreaView } from 'react-native-safe-area-context';
 
 // Apply withUniwind to Svg to add className support

@@ -5,15 +5,13 @@
  */
 import React, { useEffect } from 'react';
 import {
-    View,
-    ScrollView,
-    StyleSheet,
     RefreshControl,
+    StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-import { Text } from '@/components/ui';
+import { Text, View, ScrollView } from '@/components/ui';
 import { Card, PressableCard } from '@/components/ui/card';
 import { useAgentStore } from '@/lib/agent/use-agent-store';
 import { useAccount } from '@reown/appkit-react-native';
