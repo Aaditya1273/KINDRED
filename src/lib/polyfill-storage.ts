@@ -23,7 +23,7 @@ const hasStorage = isLocalStorageAvailable();
 
 // 1. Global localStorage Polyfill
 if (isWeb && !hasStorage) {
-    console.warn('[Polyfill] localStorage is restricted. Using memory fallback.');
+    console.log('[Polyfill] localStorage is restricted. Using memory fallback.');
     try {
         const mockStorage = {
             getItem: (key: string) => memoryStorage.get(key) || null,

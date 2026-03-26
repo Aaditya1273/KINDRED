@@ -177,11 +177,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
-        shadowColor: Colors.cyan,
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.3,
-        shadowRadius: 24,
         ...Platform.select({
+            ios: {
+                shadowColor: Colors.cyan,
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.3,
+                shadowRadius: 24,
+            },
             web: {
                 boxShadow: `0 12px 24px ${Colors.cyan}4D`, // 4D is ~30% opacity
             }
