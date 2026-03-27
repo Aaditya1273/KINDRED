@@ -4,6 +4,7 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import { PieChart, TrendingUp, TrendingDown, ShieldAlert, Cpu, ChevronRight, Sliders, Zap } from 'lucide-react-native';
+import { AppHeader } from '@/components/reborn/AppHeader';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/components/ui/card';
 import Svg, { Circle } from 'react-native-svg';
@@ -27,10 +28,12 @@ export default function DataControl() {
 
     return (
         <ScrollView
-            style={[styles.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}
-            contentContainerStyle={styles.content}
+            style={[styles.root, { backgroundColor: theme.bg }]}
+            contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.md }]}
             showsVerticalScrollIndicator={false}
         >
+            <AppHeader />
+
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.textPrimary }]}>Data + Control</Text>
                 <View style={[styles.badge, { backgroundColor: theme.primary + '15' }]}>

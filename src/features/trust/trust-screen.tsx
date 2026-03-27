@@ -74,7 +74,6 @@ export function TrustScreen() {
             showsVerticalScrollIndicator={false}
         >
             <AppHeader />
-
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.textPrimary }]}>The Blind Wealth Manager</Text>
                 <Text style={[styles.subtitle, { color: theme.textSecondary }]}>

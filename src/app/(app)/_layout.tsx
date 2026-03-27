@@ -62,10 +62,10 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="trust"
+                name="data-control"
                 options={{
-                    title: 'Agent',
-                    tabBarIcon: ({ color, size }) => <User2 color={color} size={size + 4} strokeWidth={2.5} />
+                    title: 'Control',
+                    tabBarIcon: ({ color, size }) => <PieChart color={color} size={size + 4} strokeWidth={2.5} />
                 }}
             />
             <Tabs.Screen
@@ -94,12 +94,12 @@ export default function TabLayout() {
                 }}
             />
             {/* Hidden routes */}
+            <Tabs.Screen name="trust" options={{ href: null }} />
             <Tabs.Screen name="portfolio" options={{ href: null }} />
             <Tabs.Screen name="faq" options={{ href: null }} />
             <Tabs.Screen name="style" options={{ href: null }} />
             <Tabs.Screen name="yield" options={{ href: null }} />
             <Tabs.Screen name="history" options={{ href: null }} />
-            <Tabs.Screen name="data-control" options={{ href: null }} />
         </Tabs>
     );
 }
