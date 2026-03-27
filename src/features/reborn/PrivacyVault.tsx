@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
@@ -16,6 +16,14 @@ const INSIGHTS = [
 export default function PrivacyVault() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const [revokeVisible, setRevokeVisible] = useState(false);
+    const [vaultModalVisible, setVaultModalVisible] = useState(false);
+    const [selectedVault, setSelectedVault] = useState<any>(null);
+
+    const openVaultItem = (label: string, status: string, icon: any) => {
+        setSelectedVault({ label, status, icon });
+        setVaultModalVisible(true);
+    };
 
     return (
         <View style={[styles.root, { backgroundColor: theme.bg }]}>
@@ -76,12 +84,14 @@ export default function PrivacyVault() {
                             label="Bank Statements"
                             status="Encrypted & Uploaded"
                             color={theme.positive}
+                            onPress={() => openVaultItem('Bank Statements', 'Encrypted & Uploaded', Database)}
                         />
                         <VaultItem
                             icon={Activity}
                             label="Spending History"
                             status="Processing in FHE"
                             color={theme.primary}
+                            onPress={() => openVaultItem('Spending History', 'Processing in FHE', Activity)}
                         />
                         <VaultItem
                             icon={Fingerprint}
@@ -89,26 +99,100 @@ export default function PrivacyVault() {
                             status="World ID Verified"
                             color={theme.positive}
                             isLast
+                            onPress={() => openVaultItem('Identity Verification', 'World ID Verified', Fingerprint)}
                         />
                     </View>
                 </Animated.View>
 
                 {/* Control Section */}
-                <Pressable style={[styles.controlBtn, { backgroundColor: theme.primary }]}>
+                <Pressable
+                    style={[styles.controlBtn, { backgroundColor: theme.primary }]}
+                    onPress={() => setRevokeVisible(true)}
+                >
                     <ShieldCheck size={20} color="#FFF" />
                     <Text style={styles.controlBtnText}>Revoke Data Permissions</Text>
                 </Pressable>
 
                 <View style={{ height: 120 }} />
+
+                {/* Vault Item Modal */}
+                <Modal animationType="fade" transparent={true} visible={vaultModalVisible} onRequestClose={() => setVaultModalVisible(false)}>
+                    <Pressable style={styles.modalOverlay} onPress={() => setVaultModalVisible(false)}>
+                        <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <Pressable
+                            style={[styles.modalContent, { backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)', borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+                            onPress={(e) => e.stopPropagation()}
+                        >
+                            <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                            <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                                <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{selectedVault?.label}</Text>
+                                <Pressable onPress={() => setVaultModalVisible(false)} style={styles.modalCloseBtn}>
+                                    <Text style={{ color: theme.primary, fontWeight: '700' }}>Close</Text>
+                                </Pressable>
+                            </View>
+                            <View style={styles.modalBody}>
+                                <View style={styles.vaultDetailBox}>
+                                    <Lock size={32} color={theme.textMuted} style={{ marginBottom: 12 }} />
+                                    <Text style={[styles.vaultDetailText, { color: theme.textSecondary }]}>
+                                        This data is encrypted using Fully Homomorphic Encryption (FHE). KINDRED can analyze it to find yields, but cannot see the raw values.
+                                    </Text>
+                                    <Text style={[styles.vaultStatusHighlight, { color: theme.primary }]}>
+                                        Status: {selectedVault?.status}
+                                    </Text>
+                                </View>
+                            </View>
+                        </Pressable>
+                    </Pressable>
+                </Modal>
+
+                {/* Revoke Warning Modal */}
+                <Modal animationType="fade" transparent={true} visible={revokeVisible} onRequestClose={() => setRevokeVisible(false)}>
+                    <Pressable style={styles.modalOverlay} onPress={() => setRevokeVisible(false)}>
+                        <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <Pressable
+                            style={[styles.modalContent, { backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)', borderColor: theme.negative }]}
+                            onPress={(e) => e.stopPropagation()}
+                        >
+                            <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                            <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                                <Text style={[styles.modalTitle, { color: theme.negative }]}>Revoke Access?</Text>
+                                <Pressable onPress={() => setRevokeVisible(false)} style={styles.modalCloseBtn}>
+                                    <Text style={{ color: theme.textPrimary, fontWeight: '700' }}>Cancel</Text>
+                                </Pressable>
+                            </View>
+                            <View style={styles.modalBody}>
+                                <Text style={[styles.vaultDetailText, { color: theme.textSecondary, marginBottom: 24 }]}>
+                                    Revoking permissions will instantly delete your FHE keys and halt all automated yield strategies. Your funds will remain in their current protocols.
+                                </Text>
+                                <Pressable
+                                    onPress={() => {
+                                        alert("Permissions Revoked. All data deleted.");
+                                        setRevokeVisible(false);
+                                    }}
+                                    style={[styles.modalActionBtn, { backgroundColor: theme.negative }]}
+                                >
+                                    <Text style={[styles.modalActionBtnText, { color: '#FFF' }]}>Confirm Revoke</Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
+                    </Pressable>
+                </Modal>
             </ScrollView>
         </View>
     );
 }
 
-const VaultItem = ({ icon: Icon, label, status, color, isLast }: any) => {
+const VaultItem = ({ icon: Icon, label, status, color, isLast, onPress }: any) => {
     const theme = useAppTheme();
     return (
-        <View style={[styles.vaultItem, !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 }]}>
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [
+                styles.vaultItem,
+                !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 },
+                pressed && { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
+            ]}
+        >
             <View style={[styles.iconBox, { backgroundColor: color + '15' }]}>
                 <Icon size={18} color={color} />
             </View>
@@ -117,7 +201,7 @@ const VaultItem = ({ icon: Icon, label, status, color, isLast }: any) => {
                 <Text style={[styles.vaultStatus, { color: theme.textSecondary }]}>{status}</Text>
             </View>
             <ChevronRight size={16} color={theme.textMuted} />
-        </View>
+        </Pressable>
     );
 };
 
@@ -147,5 +231,32 @@ const styles = StyleSheet.create({
     vaultStatus: { fontSize: 12, marginTop: 2 },
 
     controlBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 18, borderRadius: 20, marginTop: 10 },
-    controlBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' }
+    controlBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: '85%', maxWidth: 400, borderRadius: 32, overflow: 'hidden', borderWidth: 1,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40 },
+            web: { boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }
+        })
+    },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, zIndex: 10 },
+    modalTitle: { fontSize: 20, fontWeight: '800' },
+    modalCloseBtn: { padding: 8 },
+    modalBody: { padding: 24, zIndex: 10 },
+    vaultDetailBox: { alignItems: 'center', padding: 16 },
+    vaultDetailText: { fontSize: 14, lineHeight: 22, textAlign: 'center', fontWeight: '500' },
+    vaultStatusHighlight: { fontSize: 13, fontWeight: '700', marginTop: 16 },
+    modalActionBtn: {
+        height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center',
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+            web: { boxShadow: '0 4px 12px rgba(255, 60, 60, 0.3)' }
+        })
+    },
+    modalActionBtnText: { fontSize: 16, fontWeight: '700' }
 });

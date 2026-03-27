@@ -8,6 +8,7 @@ import {
     Platform,
     FlatList,
     StyleSheet,
+    Modal,
     type ScrollView as RNScrollView,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -52,7 +53,14 @@ export default function AgentScreen() {
     const [input, setInput] = useState('');
     const [hasStarted, setHasStarted] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
+    const [featureModalVisible, setFeatureModalVisible] = useState(false);
+    const [featureTitle, setFeatureTitle] = useState('');
     const scrollRef = useRef<RNScrollView>(null);
+
+    const openFeature = (title: string) => {
+        setFeatureTitle(title);
+        setFeatureModalVisible(true);
+    };
 
     const sendMessage = (text: string) => {
         if (!text.trim()) return;
@@ -83,10 +91,40 @@ export default function AgentScreen() {
                     <Text style={[styles.userName, { color: theme.textPrimary }]}>KINDRED Master</Text>
                 </View>
             </View>
-            <Pressable style={[styles.headerAction, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Pressable
+                style={[styles.headerAction, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => openFeature('Rewards Store')}
+            >
                 <ShoppingBag size={20} color={theme.textPrimary} />
             </Pressable>
         </View>
+    );
+
+    const renderFeatureModal = () => (
+        <Modal animationType="fade" transparent={true} visible={featureModalVisible} onRequestClose={() => setFeatureModalVisible(false)}>
+            <Pressable style={styles.modalOverlay} onPress={() => setFeatureModalVisible(false)}>
+                <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                <Pressable
+                    style={[styles.modalContent, { backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)', borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+                    onPress={(e) => e.stopPropagation()}
+                >
+                    <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                        <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{featureTitle}</Text>
+                        <Pressable onPress={() => setFeatureModalVisible(false)} style={styles.modalCloseBtn}>
+                            <Text style={{ color: theme.primary, fontWeight: '700' }}>Close</Text>
+                        </Pressable>
+                    </View>
+                    <View style={styles.modalBody}>
+                        <View style={styles.vaultDetailBox}>
+                            <Text style={[styles.vaultDetailText, { color: theme.textSecondary }]}>
+                                This feature is currently in development. It will be powered by the KINDRED Core Engine in V2.
+                            </Text>
+                        </View>
+                    </View>
+                </Pressable>
+            </Pressable>
+        </Modal>
     );
 
     return (
@@ -116,7 +154,7 @@ export default function AgentScreen() {
                         {/* Centered Input */}
                         <View style={[styles.searchControl, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
                             <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                            <Pressable style={styles.searchIconBtn}>
+                            <Pressable style={styles.searchIconBtn} onPress={() => openFeature('Document Scanner')}>
                                 <Camera size={20} color={theme.textSecondary} />
                             </Pressable>
                             <TextInput
@@ -186,7 +224,7 @@ export default function AgentScreen() {
                     <View style={[styles.bottomInputArea, { paddingBottom: insets.bottom + Spacing.md, borderTopColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                         <View style={[styles.searchControl, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: 0 }]}>
                             <BlurView intensity={Platform.OS === 'web' ? 20 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                            <Pressable style={styles.searchIconBtn}>
+                            <Pressable style={styles.searchIconBtn} onPress={() => openFeature('Document Scanner')}>
                                 <Camera size={20} color={theme.textSecondary} />
                             </Pressable>
                             <TextInput
@@ -204,6 +242,8 @@ export default function AgentScreen() {
                     </View>
                 </View>
             )}
+
+            {renderFeatureModal()}
         </KeyboardAvoidingView>
     );
 }
@@ -268,4 +308,22 @@ const styles = StyleSheet.create({
     agentBubble: { alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
     bubbleText: { fontSize: 15, lineHeight: 22, fontWeight: '500' },
     bottomInputArea: { paddingHorizontal: Spacing.xl, borderTopWidth: 1, paddingTop: 12 },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: '85%', maxWidth: 400, borderRadius: 32, overflow: 'hidden', borderWidth: 1,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40 },
+            web: { boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }
+        })
+    },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, zIndex: 10 },
+    modalTitle: { fontSize: 20, fontWeight: '800' },
+    modalCloseBtn: { padding: 8 },
+    modalBody: { padding: 24, zIndex: 10 },
+    vaultDetailBox: { alignItems: 'center', padding: 16 },
+    vaultDetailText: { fontSize: 14, lineHeight: 22, textAlign: 'center', fontWeight: '500' },
 });

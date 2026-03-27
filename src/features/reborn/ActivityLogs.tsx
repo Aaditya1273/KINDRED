@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Modal } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
@@ -50,6 +50,13 @@ const LOGS = [
 export default function ActivityLogs() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const [selectedLog, setSelectedLog] = useState<any>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const openLog = (log: any) => {
+        setSelectedLog(log);
+        setModalVisible(true);
+    };
 
     return (
         <ScrollView
@@ -73,33 +80,89 @@ export default function ActivityLogs() {
 
             {LOGS.map((log, idx) => (
                 <Animated.View key={log.id} entering={FadeInDown.delay(idx * 50).duration(400)} style={[styles.logCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
-                    <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                    <View style={styles.logInner}>
-                        <View style={styles.logHeader}>
-                            <View style={[styles.iconBox, { backgroundColor: theme.primary + '10' }]}>
-                                {log.type === 'ON-CHAIN' ? <Zap size={18} color={theme.primary} /> : <FileText size={18} color={theme.textMuted} />}
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <View style={styles.actionRow}>
-                                    <Text style={[styles.actionTitle, { color: theme.textPrimary }]}>{log.action}</Text>
-                                    <Text style={[styles.statusTag, { color: log.status === 'Success' ? theme.positive : theme.textMuted }]}>{log.status}</Text>
+                    <Pressable onPress={() => openLog(log)} style={{ flex: 1 }}>
+                        <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={styles.logInner}>
+                            <View style={styles.logHeader}>
+                                <View style={[styles.iconBox, { backgroundColor: theme.primary + '10' }]}>
+                                    {log.type === 'ON-CHAIN' ? <Zap size={18} color={theme.primary} /> : <FileText size={18} color={theme.textMuted} />}
                                 </View>
-                                <Text style={[styles.time, { color: theme.textMuted }]}>{log.time}</Text>
+                                <View style={{ flex: 1 }}>
+                                    <View style={styles.actionRow}>
+                                        <Text style={[styles.actionTitle, { color: theme.textPrimary }]}>{log.action}</Text>
+                                        <Text style={[styles.statusTag, { color: log.status === 'Success' ? theme.positive : theme.textMuted }]}>{log.status}</Text>
+                                    </View>
+                                    <Text style={[styles.time, { color: theme.textMuted }]}>{log.time}</Text>
+                                </View>
+                            </View>
+
+                            <Text style={[styles.desc, { color: theme.textSecondary }]}>{log.desc}</Text>
+
+                            <View style={[styles.proofBadge, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                                <Link size={12} color={theme.textMuted} />
+                                <Text style={[styles.proofText, { color: theme.textMuted }]}>{log.proof}</Text>
+                                <ChevronRight size={12} color={theme.textMuted} />
                             </View>
                         </View>
-
-                        <Text style={[styles.desc, { color: theme.textSecondary }]}>{log.desc}</Text>
-
-                        <View style={[styles.proofBadge, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-                            <Link size={12} color={theme.textMuted} />
-                            <Text style={[styles.proofText, { color: theme.textMuted }]}>{log.proof}</Text>
-                            <ChevronRight size={12} color={theme.textMuted} />
-                        </View>
-                    </View>
+                    </Pressable>
                 </Animated.View>
             ))}
 
             <View style={{ height: 100 }} />
+
+            {/* Receipt Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
+                    <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <Pressable
+                        style={[styles.modalContent, { backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)', borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                            <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>Receipt Details</Text>
+                            <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseBtn}>
+                                <Text style={{ color: theme.primary, fontWeight: '700' }}>Close</Text>
+                            </Pressable>
+                        </View>
+
+                        {selectedLog && (
+                            <View style={styles.modalBody}>
+                                <View style={[styles.detailRow, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                                    <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Action</Text>
+                                    <Text style={[styles.detailValue, { color: theme.textPrimary }]}>{selectedLog.action}</Text>
+                                </View>
+                                <View style={[styles.detailRow, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                                    <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Status</Text>
+                                    <Text style={[styles.detailValue, { color: selectedLog.status === 'Success' ? theme.positive : theme.textPrimary }]}>{selectedLog.status}</Text>
+                                </View>
+                                <View style={[styles.detailRow, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                                    <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Type</Text>
+                                    <Text style={[styles.detailValue, { color: theme.textPrimary }]}>{selectedLog.type}</Text>
+                                </View>
+                                <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
+                                    <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Proof</Text>
+                                    <Text style={[styles.detailValue, { color: theme.primary }]} selectable>{selectedLog.proof}</Text>
+                                </View>
+
+                                <Pressable
+                                    onPress={() => {
+                                        alert(`Opening Explorer for: ${selectedLog.proof}`);
+                                    }}
+                                    style={[styles.modalActionBtn, { backgroundColor: theme.primary, marginTop: 24 }]}
+                                >
+                                    <Text style={[styles.modalActionBtnText, { color: theme.bg }]}>View on Explorer</Text>
+                                </Pressable>
+                            </View>
+                        )}
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </ScrollView>
     );
 }
@@ -124,5 +187,33 @@ const styles = StyleSheet.create({
     desc: { fontSize: 13, lineHeight: 18, marginBottom: 16 },
 
     proofBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 16 },
-    proofText: { fontSize: 11, fontWeight: '600', flex: 1 }
+    proofText: { fontSize: 11, fontWeight: '600', flex: 1 },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1, justifyContent: 'center', alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    modalContent: {
+        width: '85%', maxWidth: 400, borderRadius: 32, overflow: 'hidden', borderWidth: 1,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40 },
+            web: { boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }
+        })
+    },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, zIndex: 10 },
+    modalTitle: { fontSize: 20, fontWeight: '800' },
+    modalCloseBtn: { padding: 8 },
+    modalBody: { padding: 24, zIndex: 10 },
+    detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1 },
+    detailLabel: { fontSize: 13, fontWeight: '600' },
+    detailValue: { fontSize: 13, fontWeight: '700' },
+    modalActionBtn: {
+        height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center',
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+            web: { boxShadow: '0 4px 12px rgba(255, 123, 26, 0.3)' }
+        })
+    },
+    modalActionBtnText: { fontSize: 16, fontWeight: '700' },
 });
