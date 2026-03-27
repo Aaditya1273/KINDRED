@@ -1,1 +1,2 @@
-export { SettingsScreen as default } from '@/features/settings/settings-screen';
+import RebornSettings from '@/features/reborn/Settings';
+export default RebornSettings;

@@ -16,9 +16,9 @@ import { Text, View, ScrollView, Pressable, TextInput } from '@/components/ui';
 import { Card } from '@/components/ui/card';
 import { useAgentStore } from '@/lib/agent/use-agent-store';
 import { useAccount } from '@reown/appkit-react-native';
-import { Send, ChevronDown, ChevronUp, Brain } from 'lucide-react-native';
-import { Colors, Spacing, Radius, Motion } from '@/theme/tokens';
+import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import * as Haptics from 'expo-haptics';
+import { Camera, AudioLines, Search, ShoppingBag } from 'lucide-react-native';
 
 type Message = {
     id: string;
@@ -41,233 +41,228 @@ const AGENT_RESPONSES: Record<string, string> = {
     'Is my data private?': 'Yes. Your financial data is processed using Zama FHE — it\'s analyzed while still encrypted. I never see your raw balances or spending history.',
 };
 
-function AgentBubble({ text }: { text: string }) {
-    return (
-        <Animated.View entering={FadeInDown.duration(250)} style={styles.agentBubble}>
-            <View style={styles.agentAvatar}>
-                <Brain size={12} color={Colors.cyan} />
-            </View>
-            <View style={styles.agentBubbleInner}>
-                <Text style={styles.bubbleText}>{text}</Text>
-            </View>
-        </Animated.View>
-    );
-}
-
-function UserBubble({ text }: { text: string }) {
-    return (
-        <Animated.View entering={FadeInUp.duration(200)} style={styles.userBubble}>
-            <View style={styles.userBubbleInner}>
-                <Text style={styles.userBubbleText}>{text}</Text>
-            </View>
-        </Animated.View>
-    );
-}
+// Removed AgentBubble and UserBubble as part of the Home-style redesign
 
 export default function AgentScreen() {
     const insets = useSafeAreaInsets();
     const { address } = useAccount();
-    const logs = useAgentStore.use.logs();
-    const agentStatus = useAgentStore.use.status();
-    const runCycle = useAgentStore.use.runCycle();
-    const loadMemory = useAgentStore.use.loadMemory();
-    const latestCID = useAgentStore.use.latestCID();
-
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '0',
-            role: 'agent',
-            text: 'Hello. I\'m your KINDRED agent. I\'m monitoring your portfolio and executing yield strategies autonomously. Ask me anything.',
-            timestamp: Date.now(),
-        },
-    ]);
+    const theme = useAppTheme();
     const [input, setInput] = useState('');
-    const [showLogs, setShowLogs] = useState(false);
+    const [hasStarted, setHasStarted] = useState(false);
+    const [messages, setMessages] = useState<Message[]>([]);
     const scrollRef = useRef<RNScrollView>(null);
 
-    useEffect(() => { loadMemory(); }, []);
-
-    const sendMessage = async (text: string) => {
+    const sendMessage = (text: string) => {
         if (!text.trim()) return;
         if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
         const userMsg: Message = { id: Date.now().toString(), role: 'user', text, timestamp: Date.now() };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
+        setHasStarted(true);
 
         // Simulate agent response
-        setTimeout(async () => {
-            let response = AGENT_RESPONSES[text] ?? `Processing: "${text}". I'll analyze this and update my strategy accordingly.`;
-
-            if (text === 'Run a cycle' && address) {
-                await runCycle(address);
-                response = 'Cycle complete. Check the execution logs below for details on what was signed and submitted.';
-            }
-
+        setTimeout(() => {
+            const response = AGENT_RESPONSES[text] ?? `I'm analyzing your request: "${text}". How else can I help?`;
             const agentMsg: Message = { id: (Date.now() + 1).toString(), role: 'agent', text: response, timestamp: Date.now() };
             setMessages(prev => [...prev, agentMsg]);
             setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-        }, 600);
-
-        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+        }, 1000);
     };
+
+    const renderHeader = () => (
+        <View style={[styles.headerHost, { marginTop: insets.top }]}>
+            <View style={styles.headerProfile}>
+                <View style={[styles.avatar, { backgroundColor: theme.surface }]}>
+                    <View style={[styles.avatarPlaceholder, { backgroundColor: theme.primary + '20' }]} />
+                </View>
+                <View>
+                    <Text style={[styles.greetingLabel, { color: theme.textSecondary }]}>Good Morning,</Text>
+                    <Text style={[styles.userName, { color: theme.textPrimary }]}>KINDRED Master</Text>
+                </View>
+            </View>
+            <Pressable style={[styles.headerAction, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <ShoppingBag size={20} color={theme.textPrimary} />
+            </Pressable>
+        </View>
+    );
 
     return (
         <KeyboardAvoidingView
-            style={[styles.root, { paddingTop: insets.top }]}
+            style={[styles.root, { backgroundColor: theme.bg }]}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                    <View style={styles.agentStatusDot} />
-                    <Text style={styles.headerTitle}>KINDRED Agent</Text>
-                </View>
-                <Pressable
-                    onPress={() => setShowLogs(v => !v)}
-                    style={styles.logsToggle}
+            {!hasStarted ? (
+                <ScrollView
+                    ref={scrollRef}
+                    style={styles.container}
+                    contentContainerStyle={[styles.content, { paddingTop: insets.top }]}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.logsToggleText}>Logs</Text>
-                    {showLogs ? <ChevronUp size={14} color={Colors.textSecondary} /> : <ChevronDown size={14} color={Colors.textSecondary} />}
-                </Pressable>
-            </View>
+                    {renderHeader()}
 
-            {/* Execution Logs (hidden by default) */}
-            {showLogs && (
-                <Animated.View entering={FadeInDown.duration(250)} style={styles.logsPanel}>
-                    <Card style={styles.logsCard}>
-                        <Text style={styles.logsTitle}>Execution Logs</Text>
-                        {logs.length === 0 ? (
-                            <Text style={styles.emptyText}>No logs yet. Run a cycle.</Text>
-                        ) : (
-                            logs.slice(0, 5).map(log => (
-                                <View key={log.id} style={styles.logRow}>
-                                    <View style={[styles.logDot, { backgroundColor: log.color }]} />
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.logTitle}>{log.title}</Text>
-                                        <Text style={styles.logDetail} numberOfLines={2}>{log.detail}</Text>
-                                    </View>
-                                    <Text style={[styles.logStatus, { color: log.color }]}>{log.status}</Text>
-                                </View>
-                            ))
-                        )}
-                        {latestCID !== '' && (
-                            <Text style={styles.cidText} numberOfLines={1}>CID: {latestCID}</Text>
-                        )}
-                    </Card>
-                </Animated.View>
-            )}
+                    <View style={styles.centeredContent}>
+                        {/* Hero Section */}
+                        <Animated.View entering={FadeInDown.duration(600)} style={styles.hero}>
+                            <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Need anything?</Text>
+                            <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
+                                Our smart AI assistant helps you find exactly what you need — faster and easier than ever.
+                            </Text>
+                        </Animated.View>
 
-            {/* Chat Messages */}
-            <ScrollView
-                ref={scrollRef}
-                style={styles.messages}
-                contentContainerStyle={styles.messagesContent}
-                showsVerticalScrollIndicator={false}
-            >
-                {messages.map(msg =>
-                    msg.role === 'agent'
-                        ? <AgentBubble key={msg.id} text={msg.text} />
-                        : <UserBubble key={msg.id} text={msg.text} />
-                )}
-                {agentStatus === 'running' && (
-                    <Animated.View entering={FadeInDown.duration(200)} style={styles.agentBubble}>
-                        <View style={styles.agentAvatar}>
-                            <Brain size={12} color={Colors.cyan} />
+                        {/* Centered Input */}
+                        <View style={[styles.searchControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                            <Pressable style={styles.searchIconBtn}>
+                                <Camera size={20} color={theme.textSecondary} />
+                            </Pressable>
+                            <TextInput
+                                style={[styles.searchInput, { color: theme.textPrimary }]}
+                                value={input}
+                                onChangeText={setInput}
+                                placeholder="Ask Anything..."
+                                placeholderTextColor={theme.textMuted}
+                                onSubmitEditing={() => sendMessage(input)}
+                            />
+                            <Pressable style={[styles.voiceBtn, { backgroundColor: theme.primary }]} onPress={() => sendMessage(input)}>
+                                <AudioLines size={20} color={theme.bg} />
+                            </Pressable>
                         </View>
-                        <View style={styles.agentBubbleInner}>
-                            <Text style={[styles.bubbleText, { color: Colors.textMuted }]}>Thinking...</Text>
-                        </View>
-                    </Animated.View>
-                )}
-            </ScrollView>
 
-            {/* Quick Chips */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.chips}
-                contentContainerStyle={styles.chipsContent}
-            >
-                {QUICK_CHIPS.map(chip => (
-                    <Pressable
-                        key={chip}
-                        style={styles.chip}
-                        onPress={() => sendMessage(chip)}
+                        {/* Suggestions */}
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.chipsRow}
+                            contentContainerStyle={styles.chipsContent}
+                        >
+                            {QUICK_CHIPS.map((chip) => (
+                                <Pressable
+                                    key={chip}
+                                    style={[styles.chip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                                    onPress={() => sendMessage(chip)}
+                                >
+                                    <Search size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
+                                    <Text style={[styles.chipText, { color: theme.textSecondary }]}>{chip}</Text>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </ScrollView>
+            ) : (
+                <View style={styles.chatRoot}>
+                    {/* Compact Header for Chat Mode */}
+                    <View style={[styles.compactHeader, { paddingTop: insets.top, borderBottomColor: theme.border }]}>
+                        <Text style={[styles.compactHeaderTitle, { color: theme.textPrimary }]}>Assistant</Text>
+                        <Pressable onPress={() => { setHasStarted(false); setMessages([]); }} style={styles.resetBtn}>
+                            <Text style={{ color: theme.primary, fontWeight: '600' }}>New Chat</Text>
+                        </Pressable>
+                    </View>
+
+                    <ScrollView
+                        ref={scrollRef}
+                        style={styles.messagesContainer}
+                        contentContainerStyle={styles.messagesContent}
+                        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
                     >
-                        <Text style={styles.chipText}>{chip}</Text>
-                    </Pressable>
-                ))}
-            </ScrollView>
+                        {messages.map((msg, i) => (
+                            <Animated.View
+                                key={msg.id}
+                                entering={FadeInUp.delay(i * 100).duration(400)}
+                                style={[
+                                    styles.bubble,
+                                    msg.role === 'user' ? styles.userBubble : styles.agentBubble,
+                                    { backgroundColor: msg.role === 'user' ? theme.primary + '15' : theme.surface }
+                                ]}
+                            >
+                                <Text style={[styles.bubbleText, { color: theme.textPrimary }]}>{msg.text}</Text>
+                            </Animated.View>
+                        ))}
+                    </ScrollView>
 
-            {/* Input */}
-            <View style={[styles.inputRow, { paddingBottom: insets.bottom + Spacing.sm }]}>
-                <TextInput
-                    style={styles.input}
-                    value={input}
-                    onChangeText={setInput}
-                    placeholder="Ask your agent..."
-                    placeholderTextColor={Colors.textMuted}
-                    returnKeyType="send"
-                    onSubmitEditing={() => sendMessage(input)}
-                    multiline={false}
-                />
-                <Pressable
-                    style={[styles.sendBtn, { opacity: input.trim() ? 1 : 0.4 }]}
-                    onPress={() => sendMessage(input)}
-                    disabled={!input.trim()}
-                >
-                    <Send size={18} color={Colors.bg} />
-                </Pressable>
-            </View>
+                    {/* Bottom-pinned Input */}
+                    <View style={[styles.bottomInputArea, { paddingBottom: Spacing.md, borderTopColor: theme.border }]}>
+                        <View style={[styles.searchControl, { backgroundColor: theme.surface, borderColor: theme.border, marginBottom: 0 }]}>
+                            <Pressable style={styles.searchIconBtn}>
+                                <Camera size={20} color={theme.textSecondary} />
+                            </Pressable>
+                            <TextInput
+                                style={[styles.searchInput, { color: theme.textPrimary }]}
+                                value={input}
+                                onChangeText={setInput}
+                                placeholder="Message Assistant..."
+                                placeholderTextColor={theme.textMuted}
+                                onSubmitEditing={() => sendMessage(input)}
+                            />
+                            <Pressable style={[styles.voiceBtn, { backgroundColor: theme.primary }]} onPress={() => sendMessage(input)}>
+                                <AudioLines size={20} color={theme.bg} />
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            )}
         </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: Colors.bg },
+    root: { flex: 1 },
+    container: { flex: 1 },
+    content: { flexGrow: 1, paddingHorizontal: Spacing.xl, paddingBottom: 100 },
+    centeredContent: { flex: 1, justifyContent: 'center', marginBottom: 120 }, // Offset for the heavy header but still centered
 
-    header: {
+    headerHost: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: Spacing.md, paddingVertical: Spacing.md,
-        borderBottomWidth: 1, borderBottomColor: Colors.border,
+        marginBottom: 80,
     },
-    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    agentStatusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.emerald },
-    headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary },
-    logsToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, borderRadius: Radius.full, backgroundColor: Colors.surface },
-    logsToggleText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
+    headerProfile: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    avatar: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden' },
+    avatarPlaceholder: { width: '100%', height: '100%' },
+    greetingLabel: { fontSize: 13, fontWeight: '500' },
+    userName: { fontSize: 18, fontWeight: '700' },
+    headerAction: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
 
-    logsPanel: { paddingHorizontal: Spacing.md, paddingTop: Spacing.sm },
-    logsCard: { padding: Spacing.md },
-    logsTitle: { fontSize: 11, color: Colors.textSecondary, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: Spacing.sm },
-    logRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Colors.border },
-    logDot: { width: 6, height: 6, borderRadius: 3, marginTop: 4 },
-    logTitle: { fontSize: 12, color: Colors.textPrimary, fontWeight: '600' },
-    logDetail: { fontSize: 11, color: Colors.textSecondary, marginTop: 2, lineHeight: 15 },
-    logStatus: { fontSize: 10, fontWeight: '700' },
-    cidText: { fontSize: 10, color: Colors.textMuted, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', marginTop: Spacing.sm },
-    emptyText: { fontSize: 12, color: Colors.textMuted, textAlign: 'center', paddingVertical: Spacing.sm },
+    hero: { marginBottom: 40, paddingHorizontal: 4 },
+    heroTitle: { fontSize: 48, fontWeight: '800', letterSpacing: -1.5, marginBottom: 16 },
+    heroSubtitle: { fontSize: 16, lineHeight: 24, fontWeight: '500', opacity: 0.8 },
 
-    messages: { flex: 1 },
-    messagesContent: { padding: Spacing.md, gap: Spacing.sm },
+    searchControl: {
+        flexDirection: 'row', alignItems: 'center',
+        height: 60, borderRadius: 30, borderWidth: 1,
+        paddingLeft: 10, paddingRight: 6,
+        marginBottom: 24,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+            web: { boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }
+        })
+    },
+    searchIconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+    searchInput: { flex: 1, fontSize: 16, fontWeight: '600', paddingHorizontal: 8, height: '100%', paddingVertical: 0 },
+    voiceBtn: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
 
-    agentBubble: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, maxWidth: '85%' },
-    agentAvatar: { width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.cyan + '22', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-    agentBubbleInner: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.lg, borderTopLeftRadius: 4, padding: Spacing.md, flex: 1 },
-    bubbleText: { fontSize: 14, color: Colors.textPrimary, lineHeight: 20 },
+    chipsRow: { maxHeight: 40 },
+    chipsContent: { gap: 8, paddingHorizontal: 4 },
+    chip: {
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: 16, height: 38,
+        borderRadius: 19, borderWidth: 1
+    },
+    chipText: { fontSize: 13, fontWeight: '600' },
 
-    userBubble: { alignSelf: 'flex-end', maxWidth: '80%' },
-    userBubbleInner: { backgroundColor: Colors.cyan + '18', borderWidth: 1, borderColor: Colors.cyan + '33', borderRadius: Radius.lg, borderBottomRightRadius: 4, padding: Spacing.md },
-    userBubbleText: { fontSize: 14, color: Colors.textPrimary, lineHeight: 20 },
-
-    chips: { maxHeight: 44, borderTopWidth: 1, borderTopColor: Colors.border },
-    chipsContent: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, gap: Spacing.sm },
-    chip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-    chipText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '500' },
-
-    inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.md, paddingTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border },
-    input: { flex: 1, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.full, paddingHorizontal: Spacing.md, paddingVertical: 12, fontSize: 14, color: Colors.textPrimary },
-    sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.cyan, alignItems: 'center', justifyContent: 'center' },
+    // Chat Styles
+    chatRoot: { flex: 1 },
+    compactHeader: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm,
+        borderBottomWidth: 1,
+    },
+    compactHeaderTitle: { fontSize: 16, fontWeight: '700' },
+    resetBtn: { padding: 8 },
+    messagesContainer: { flex: 1 },
+    messagesContent: { padding: Spacing.xl, gap: 16 },
+    bubble: { padding: 16, borderRadius: 20, maxWidth: '85%' },
+    userBubble: { alignSelf: 'flex-end', borderBottomRightRadius: 4 },
+    agentBubble: { alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
+    bubbleText: { fontSize: 15, lineHeight: 22, fontWeight: '500' },
+    bottomInputArea: { paddingHorizontal: Spacing.xl, borderTopWidth: 1, paddingTop: 12 },
 });

@@ -78,9 +78,6 @@ function Providers({ children }: { children: React.ReactNode }) {
                   <BottomSheetModalProvider>
                     {children}
                     <FlashMessage position="top" />
-                    <View style={[StyleSheet.absoluteFill, { pointerEvents: 'box-none' } as any]}>
-                      <AppKit />
-                    </View>
                   </BottomSheetModalProvider>
                 </APIProvider>
               </ThemeProvider>

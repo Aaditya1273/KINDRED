@@ -1,15 +1,20 @@
 import { Redirect, SplashScreen, Tabs } from 'expo-router';
 import * as React from 'react';
+import { View, Platform } from 'react-native';
 import { useCallback, useEffect } from 'react';
 import { useAuthStore as useAuth } from '@/features/auth/use-auth-store';
 import { useIsFirstTime } from '@/lib/hooks/use-is-first-time';
-import { Home, MessageCircle, PieChart, Shield, Settings } from 'lucide-react-native';
-import { Colors } from '@/theme/tokens';
+import { Home, Sparkle, PieChart, HelpCircle, User2 } from 'lucide-react-native';
+import { useAppTheme } from '@/theme/tokens';
 
 export default function TabLayout() {
     const status = useAuth.use.status();
     const [isFirstTime] = useIsFirstTime();
-    const hideSplash = useCallback(async () => { await SplashScreen.hideAsync(); }, []);
+    const theme = useAppTheme();
+
+    const hideSplash = useCallback(async () => {
+        try { await SplashScreen.hideAsync(); } catch (e) { }
+    }, []);
 
     useEffect(() => {
         if (status !== 'idle') {
@@ -18,27 +23,67 @@ export default function TabLayout() {
         }
     }, [hideSplash, status]);
 
-    if (isFirstTime) return <Redirect href="/onboarding" />;
-
     return (
         <Tabs screenOptions={{
-            tabBarActiveTintColor: Colors.cyan,
-            tabBarInactiveTintColor: 'rgba(255,255,255,0.25)',
+            tabBarActiveTintColor: theme.primary,
+            tabBarInactiveTintColor: theme.textSecondary,
             tabBarStyle: {
-                backgroundColor: Colors.surface,
+                backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF',
                 borderTopWidth: 1,
-                borderTopColor: Colors.border,
-                height: 85,
-                paddingBottom: 25,
+                borderTopColor: theme.border,
+                height: Platform.OS === 'ios' ? 88 : 70,
+                paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+                paddingTop: 10,
+                elevation: 0,
+                shadowOpacity: 0,
             },
-            tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+            tabBarItemStyle: {
+                height: 50,
+                justifyContent: 'center',
+                alignItems: 'center',
+            },
+            tabBarLabelStyle: { fontSize: 0, opacity: 0, display: 'none' }, // Completely hide labels
             headerShown: false,
         }}>
-            <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <Home color={color} size={size} /> }} />
-            <Tabs.Screen name="agent" options={{ title: 'Agent', tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} /> }} />
-            <Tabs.Screen name="portfolio" options={{ title: 'Portfolio', tabBarIcon: ({ color, size }) => <PieChart color={color} size={size} /> }} />
-            <Tabs.Screen name="trust" options={{ title: 'Trust', tabBarIcon: ({ color, size }) => <Shield color={color} size={size} /> }} />
-            <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color, size }) => <Settings color={color} size={size} /> }} />
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: 'Home',
+                    tabBarIcon: ({ color, size }) => <Home color={color} size={size + 4} strokeWidth={2.5} />
+                }}
+            />
+            <Tabs.Screen
+                name="trust"
+                options={{
+                    title: 'Agent',
+                    tabBarIcon: ({ color, size }) => <User2 color={color} size={size + 4} strokeWidth={2.5} />
+                }}
+            />
+            <Tabs.Screen
+                name="agent"
+                options={{
+                    title: 'Spark',
+                    tabBarIcon: ({ color, size }) => (
+                        <View style={[styles.sparkContainer, { backgroundColor: '#0A0A0A' }]}>
+                            <Sparkle color={theme.primary} size={28} />
+                        </View>
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="portfolio"
+                options={{
+                    title: 'Portfolio',
+                    tabBarIcon: ({ color, size }) => <PieChart color={color} size={size + 4} strokeWidth={2.5} />
+                }}
+            />
+            <Tabs.Screen
+                name="faq"
+                options={{
+                    title: 'FAQ',
+                    tabBarIcon: ({ color, size }) => <HelpCircle color={color} size={size + 4} strokeWidth={2.5} />
+                }}
+            />
             {/* Hidden routes */}
             <Tabs.Screen name="style" options={{ href: null }} />
             <Tabs.Screen name="yield" options={{ href: null }} />
@@ -46,3 +91,22 @@ export default function TabLayout() {
         </Tabs>
     );
 }
+
+const styles = {
+    sparkContainer: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: Platform.OS === 'web' ? -10 : -25, // Float slightly above
+        borderWidth: 2,
+        borderColor: '#FF7B1A',
+        // Shadow/Glow effect
+        shadowColor: '#FF7B1A',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+    }
+} as any;

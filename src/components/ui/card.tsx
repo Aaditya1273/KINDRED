@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Colors, Radius, Motion, Interaction } from '@/theme/tokens';
+import { Spacing, Radius, Motion, Interaction, useAppTheme } from '@/theme/tokens';
 
 interface CardProps extends ViewProps {
     radius?: number;
@@ -25,12 +25,16 @@ interface CardProps extends ViewProps {
 }
 
 export function Card({ children, style, radius = Radius.lg, elevated = false, ...props }: CardProps) {
+    const theme = useAppTheme();
     return (
         <View
             style={[
                 styles.card,
-                elevated && styles.elevated,
-                { borderRadius: radius },
+                {
+                    backgroundColor: elevated ? theme.surfaceElevated : theme.surface,
+                    borderColor: theme.border,
+                    borderRadius: radius,
+                },
                 style,
             ]}
             {...props}
@@ -46,6 +50,7 @@ interface PressableCardProps extends CardProps {
 }
 
 export function PressableCard({ children, style, radius = Radius.lg, elevated = false, onPress, disabled }: PressableCardProps) {
+    const theme = useAppTheme();
     const scale = useSharedValue(1);
     const opacity = useSharedValue(1);
 
@@ -72,7 +77,15 @@ export function PressableCard({ children, style, radius = Radius.lg, elevated = 
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 disabled={disabled}
-                style={[styles.card, elevated && styles.elevated, { borderRadius: radius }, style]}
+                style={[
+                    styles.card,
+                    {
+                        backgroundColor: elevated ? theme.surfaceElevated : theme.surface,
+                        borderColor: theme.border,
+                        borderRadius: radius,
+                    },
+                    style
+                ]}
             >
                 {children}
             </Pressable>
@@ -82,9 +95,7 @@ export function PressableCard({ children, style, radius = Radius.lg, elevated = 
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: Colors.surface,
         borderWidth: 1,
-        borderColor: Colors.border,
         overflow: 'hidden',
         ...Platform.select({
             ios: {
@@ -95,16 +106,6 @@ const styles = StyleSheet.create({
             },
             android: { elevation: 6 },
             web: { boxShadow: '0 4px 12px rgba(0,0,0,0.4)' },
-        }),
-    },
-    elevated: {
-        backgroundColor: Colors.surfaceElevated,
-        ...Platform.select({
-            ios: {
-                shadowOpacity: 0.45,
-                shadowRadius: 20,
-            },
-            android: { elevation: 12 },
         }),
     },
 });

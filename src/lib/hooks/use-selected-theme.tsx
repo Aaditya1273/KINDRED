@@ -25,15 +25,13 @@ export function useSelectedTheme() {
     [_setTheme],
   );
 
-  const selectedTheme = (theme ?? 'system') as ColorSchemeType;
+  const selectedTheme = (theme ?? 'light') as ColorSchemeType;
   return { selectedTheme, setSelectedTheme } as const;
 }
 // to be used in the root file to load the selected theme from MMKV
 export function loadSelectedTheme() {
   const theme = storage.getString(SELECTED_THEME);
-  // Force dark mode for KINDRED premium look
-  Uniwind.setTheme('dark');
   if (theme !== undefined) {
-    console.log('Stored theme:', theme);
+    Uniwind.setTheme(theme as any);
   }
 }

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Shield, PieChart, Brain, ArrowRight } from 'lucide-react-native';
-import { Colors, Spacing, Radius } from '@/theme/tokens';
+import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 import { useIsFirstTime } from '@/lib/hooks/use-is-first-time';
@@ -42,6 +42,7 @@ const ONBOARDING_STEPS = [
 
 export const KindredOnboarding = () => {
     const router = useRouter();
+    const theme = useAppTheme();
     const insets = useSafeAreaInsets();
     const [step, setStep] = useState(0);
     const [_, setIsFirstTime] = useIsFirstTime();
@@ -69,20 +70,20 @@ export const KindredOnboarding = () => {
     const Icon = currentStep.icon;
 
     return (
-        <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: theme.bg }]}>
             <View style={styles.header}>
                 <Animated.View key={`header-${step}`} entering={FadeInDown.duration(400)}>
                     <View style={styles.iconContainer}>
-                        {Icon && <Icon size={16} color={Colors.cyan} />}
-                        {currentStep.subtitle && <Text style={styles.subtitle}>{currentStep.subtitle}</Text>}
+                        {Icon && <Icon size={16} color={theme.primary} />}
+                        {currentStep.subtitle && <Text style={[styles.subtitle, { color: theme.primary }]}>{currentStep.subtitle}</Text>}
                     </View>
-                    <Text style={styles.title}>{currentStep.title}</Text>
+                    <Text style={[styles.title, { color: theme.textPrimary }]}>{currentStep.title}</Text>
                 </Animated.View>
             </View>
 
             <View style={styles.center}>
-                <Animated.View key={`k-logo-${step}`} entering={FadeIn.duration(1000)} style={styles.kContainer}>
-                    <Text style={styles.kLogo}>K</Text>
+                <Animated.View key={`k-logo-${step}`} entering={FadeIn.duration(1000)} style={[styles.kContainer, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.primary }]}>
+                    <Text style={[styles.kLogo, { color: theme.primary }]}>K</Text>
                 </Animated.View>
 
                 <Animated.View
@@ -90,8 +91,8 @@ export const KindredOnboarding = () => {
                     entering={FadeInDown.delay(300).duration(600)}
                     style={styles.descriptionContainer}
                 >
-                    <GlassView borderRadius={Radius.xl} style={styles.glass}>
-                        <Text style={styles.description}>
+                    <GlassView borderRadius={Radius.xl} style={[styles.glass, { borderColor: theme.border }]}>
+                        <Text style={[styles.description, { color: theme.textSecondary }]}>
                             {currentStep.description}
                         </Text>
                     </GlassView>
@@ -105,27 +106,27 @@ export const KindredOnboarding = () => {
                             key={i}
                             style={[
                                 styles.dot,
-                                { backgroundColor: i === step ? Colors.cyan : 'rgba(255,255,255,0.1)' }
+                                { backgroundColor: i === step ? theme.primary : (theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)') }
                             ]}
                         />
                     ))}
                 </View>
 
                 <InteractiveButton
-                    style={styles.primaryButton}
+                    style={[styles.primaryButton, { backgroundColor: theme.primary }]}
                     onPress={handleNext}
                 >
-                    <Text style={styles.buttonText}>
+                    <Text style={[styles.buttonText, { color: theme.bg }]}>
                         {step === ONBOARDING_STEPS.length - 1 ? "Enter KINDRED" : "Continue"}
                     </Text>
-                    {step < ONBOARDING_STEPS.length - 1 && <ArrowRight size={18} color={Colors.bg} />}
+                    {step < ONBOARDING_STEPS.length - 1 && <ArrowRight size={18} color={theme.bg} />}
                 </InteractiveButton>
 
                 <InteractiveButton
                     style={styles.skipButton}
                     onPress={handleComplete}
                 >
-                    <Text style={styles.skipText}>Skip Setup</Text>
+                    <Text style={[styles.skipText, { color: theme.textMuted }]}>Skip Setup</Text>
                 </InteractiveButton>
             </View>
         </View>
@@ -135,7 +136,6 @@ export const KindredOnboarding = () => {
 const styles = StyleSheet.create({
     root: {
         flex: 1,
-        backgroundColor: Colors.bg,
         paddingHorizontal: Spacing.lg,
     },
     header: {
@@ -152,13 +152,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 42,
         fontWeight: '900',
-        color: Colors.textPrimary,
         letterSpacing: -1,
         textAlign: 'center',
     },
     subtitle: {
         fontSize: 11,
-        color: Colors.cyan,
         fontWeight: '700',
         textTransform: 'uppercase',
         letterSpacing: 2,
@@ -172,27 +170,23 @@ const styles = StyleSheet.create({
         width: 180,
         height: 180,
         borderRadius: Radius.xl,
-        backgroundColor: Colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
         ...Platform.select({
             ios: {
-                shadowColor: Colors.cyan,
                 shadowOffset: { width: 0, height: 12 },
                 shadowOpacity: 0.3,
                 shadowRadius: 24,
             },
             web: {
-                boxShadow: `0 12px 24px ${Colors.cyan}4D`, // 4D is ~30% opacity
+                boxShadow: `0 12px 24px rgba(0,0,0,0.1)`,
             }
         })
     },
     kLogo: {
         fontSize: 84,
         fontWeight: '900',
-        color: Colors.cyan,
         letterSpacing: -2,
     },
     descriptionContainer: {
@@ -202,11 +196,9 @@ const styles = StyleSheet.create({
     glass: {
         padding: Spacing.lg,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
     },
     description: {
         fontSize: 16,
-        color: Colors.textSecondary,
         textAlign: 'center',
         lineHeight: 24,
     },
@@ -226,7 +218,6 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     primaryButton: {
-        backgroundColor: Colors.cyan,
         height: 64,
         borderRadius: Radius.xl,
         flexDirection: 'row',
@@ -235,7 +226,6 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     buttonText: {
-        color: Colors.bg,
         fontSize: 18,
         fontWeight: '800',
     },
@@ -245,7 +235,6 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.sm,
     },
     skipText: {
-        color: Colors.textMuted,
         fontSize: 14,
         fontWeight: '600',
     },

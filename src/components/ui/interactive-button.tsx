@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, PressableProps, StyleSheet, ViewStyle } from 'react-native';
+import { Pressable, PressableProps, StyleSheet, ViewStyle, View } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -30,14 +30,16 @@ export const InteractiveButton: React.FC<InteractiveButtonProps> = ({
     }));
 
     const handlePressIn = () => {
-        pressed.value = withSpring(1, Motion.spring.stiff);
-        if (haptic && Platform.OS !== 'web') {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (Platform.OS !== 'web') {
+            pressed.value = withSpring(1, Motion.spring.stiff);
+            if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
     };
 
     const handlePressOut = () => {
-        pressed.value = withSpring(0, Motion.spring.stiff);
+        if (Platform.OS !== 'web') {
+            pressed.value = withSpring(0, Motion.spring.stiff);
+        }
     };
 
     return (
@@ -47,16 +49,16 @@ export const InteractiveButton: React.FC<InteractiveButtonProps> = ({
             onPress={onPress}
             style={({ pressed: isPressed }) => [
                 style as any,
-                Platform.OS === 'web' && isPressed && { opacity: Interaction.pressOpacity },
+                Platform.OS === 'web' && isPressed && { opacity: Interaction.pressOpacity, transform: [{ scale: 0.98 }] },
                 { overflow: 'hidden' }
             ]}
             {...props}
         >
-            <Animated.View
-                style={[styles.content, animatedStyle, { pointerEvents: 'none' } as any]}
+            <View
+                style={[styles.content]}
             >
-                {typeof children === 'function' ? (children as any)({ pressed: pressed.value > 0.5 }) : children}
-            </Animated.View>
+                {typeof children === 'function' ? (children as any)({ pressed: false }) : children}
+            </View>
         </Pressable>
     );
 };

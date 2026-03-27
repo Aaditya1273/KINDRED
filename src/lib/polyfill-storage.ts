@@ -119,3 +119,48 @@ export class MMKVMock {
 }
 
 export const mmkvWebInstance = isWeb ? new MMKVMock() : null;
+// 3. Web Polyfills for Native Modules (AppKit/WalletConnect support)
+if (isWeb) {
+    // Polyfill for Application module
+    const applicationMock = {
+        applicationId: 'finance.kindred.app',
+        applicationName: 'KINDRED',
+        packageId: 'finance.kindred.app',
+        version: '1.0.0',
+        buildNumber: '1',
+        isAppInstalled: async () => false,
+    };
+
+    // Set on global for enhanced appkit compatibility
+    (global as any).Application = applicationMock;
+
+    // Polyfill for NativeModules
+    try {
+        const { NativeModules } = require('react-native');
+        if (NativeModules && !NativeModules.Application) {
+            NativeModules.Application = applicationMock;
+        }
+    } catch (e) {
+        console.warn('[Polyfill] Failed to patch NativeModules.Application:', e);
+    }
+
+    // 4. NetInfo Polyfill for Web
+    // This prevents "react-native-compat: @react-native-community/netinfo is not available"
+    if (!(global as any).NetInfo) {
+        (global as any).NetInfo = {
+            addEventListener: () => () => { },
+            fetch: async () => ({
+                isConnected: true,
+                isInternetReachable: true,
+                type: 'wifi',
+                details: { isConnectionExpensive: false }
+            }),
+            useNetInfo: () => ({
+                isConnected: true,
+                isInternetReachable: true,
+                type: 'wifi',
+                details: { isConnectionExpensive: false }
+            })
+        };
+    }
+}
