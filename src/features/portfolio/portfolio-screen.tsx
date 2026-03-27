@@ -19,7 +19,7 @@ import { useAccount } from '@reown/appkit-react-native';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import { useAuthStore as useAuth } from '@/features/auth/use-auth-store';
 import { useSelectedTheme } from '@/lib/hooks/use-selected-theme';
-import { Shield, Moon, Sun, Globe, Heart, LogOut, ChevronRight, HelpCircle } from 'lucide-react-native';
+import { Shield, Moon, Sun, Globe, Heart, LogOut, ChevronRight, HelpCircle, User, Key, Fingerprint, Mail } from 'lucide-react-native';
 import type { TokenBalance } from '@/lib/agent/portfolio';
 import { router } from 'expo-router';
 
@@ -83,14 +83,14 @@ function DonutChart({ tokens, total }: { tokens: TokenBalance[]; total: number }
     );
 }
 
-function AssetRow({ token }: { token: TokenBalance }) {
+function AssetRow({ token, isLast }: { token: TokenBalance; isLast?: boolean }) {
     const theme = useAppTheme();
     const role = ASSET_ROLES[token.symbol] ?? 'Asset';
     const isPositive = token.change24h >= 0;
 
     return (
         <Animated.View entering={FadeInDown.duration(300)}>
-            <PressableCard style={styles.assetRow} radius={Radius.md}>
+            <View style={[styles.assetRow, !isLast && { borderBottomWidth: 1, borderBottomColor: theme.border }]}>
                 <View style={[styles.assetIcon, { backgroundColor: token.color + '18' }]}>
                     <Text style={[styles.assetIconText, { color: token.color }]}>
                         {token.symbol.slice(0, 2)}
@@ -106,7 +106,7 @@ function AssetRow({ token }: { token: TokenBalance }) {
                         {isPositive ? '+' : ''}{token.change24h.toFixed(2)}%
                     </Text>
                 </View>
-            </PressableCard>
+            </View>
         </Animated.View>
     );
 }
@@ -147,7 +147,43 @@ export function PortfolioScreen() {
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
-            <Text style={[styles.title, { color: theme.textPrimary }]}>Portfolio</Text>
+            <View style={styles.profileHeader}>
+                <View style={[styles.avatarBox, { backgroundColor: theme.primary + '15' }]}>
+                    <User size={32} color={theme.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={[styles.userName, { color: theme.textPrimary }]}>Aaditya</Text>
+                    <View style={styles.userStatusRow}>
+                        <View style={[styles.onlineDot, { backgroundColor: theme.positive }]} />
+                        <Text style={[styles.userStatus, { color: theme.textSecondary }]}>Account Sovereign</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Identity & Security Hub */}
+            <View style={styles.settingsHeader}>
+                <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Identity & Security</Text>
+            </View>
+            <View style={[styles.settingsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <SettingItem
+                    icon={Fingerprint}
+                    label="World ID Verification"
+                    value="Verified"
+                    color={theme.positive}
+                />
+                <SettingItem
+                    icon={Key}
+                    label="Wallet Connect"
+                    value={address ? 'Connected' : 'Disconnected'}
+                    onPress={() => router.push('/style')}
+                />
+                <SettingItem
+                    icon={Mail}
+                    label="Recovery Email"
+                    value="aaditya***@gmail.com"
+                    isLast
+                />
+            </View>
 
             {/* Allocation Chart */}
             {tokens.length > 0 && (
@@ -187,14 +223,24 @@ export function PortfolioScreen() {
             </Pressable>
 
             {/* Asset List */}
-            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Assets</Text>
+            <View style={styles.settingsHeader}>
+                <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Assets</Text>
+            </View>
             {tokens.length === 0 ? (
-                <Card style={styles.emptyCard}>
+                <View style={[styles.settingsCard, styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                     <Text style={[styles.emptyText, { color: theme.textMuted }]}>Connect wallet to see your portfolio.</Text>
-                </Card>
+                </View>
             ) : (
-                <View style={styles.assetList}>
-                    {tokens.map(token => <AssetRow key={token.symbol} token={token} />)}
+                <View style={[styles.settingsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <View style={styles.assetList}>
+                        {tokens.map((token, i) => (
+                            <AssetRow
+                                key={token.symbol}
+                                token={token}
+                                isLast={i === tokens.length - 1}
+                            />
+                        ))}
+                    </View>
                 </View>
             )}
 
@@ -213,6 +259,11 @@ export function PortfolioScreen() {
                 <SettingItem icon={Shield} label="Security & Privacy" />
                 <SettingItem icon={Globe} label="Language" value="English" />
                 <SettingItem
+                    icon={HelpCircle}
+                    label="Help & FAQ"
+                    onPress={() => router.push('/faq')}
+                />
+                <SettingItem
                     icon={LogOut}
                     label="Sign Out"
                     color={theme.negative}
@@ -230,6 +281,13 @@ const styles = StyleSheet.create({
     root: { flex: 1 },
     content: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxl },
     title: { fontSize: 28, fontWeight: '800', marginTop: Spacing.xl, marginBottom: Spacing.lg },
+
+    profileHeader: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 32, marginTop: 10 },
+    avatarBox: { width: 68, height: 68, borderRadius: 34, justifyContent: 'center', alignItems: 'center' },
+    userName: { fontSize: 22, fontWeight: '800' },
+    userStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+    onlineDot: { width: 8, height: 8, borderRadius: 4 },
+    userStatus: { fontSize: 13, fontWeight: '600' },
 
     chartCard: { padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.lg },
     donutContainer: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center' },
@@ -269,7 +327,7 @@ const styles = StyleSheet.create({
 
     faqCard: {
         flexDirection: 'row', alignItems: 'center', gap: 16,
-        padding: 20, borderRadius: 28, borderWidth: 1, marginBottom: 24, marginTop: 8
+        padding: 20, borderRadius: 28, borderWidth: 1, marginBottom: 8, marginTop: 4
     },
     faqIconBox: { width: 64, height: 64, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
     faqTitle: { fontSize: 16, fontWeight: '700' },

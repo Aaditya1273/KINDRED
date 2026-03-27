@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
-import { ScrollText, CheckCircle2, Link, ShieldCheck, Zap, ChevronRight, FileText } from 'lucide-react-native';
+import { AppHeader } from '@/components/reborn/AppHeader';
+import { Activity, ShieldCheck, Zap, ChevronRight, CheckCircle, Clock, Link, FileText } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/components/ui/card';
 
@@ -51,10 +53,12 @@ export default function ActivityLogs() {
 
     return (
         <ScrollView
-            style={[styles.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}
-            contentContainerStyle={styles.content}
+            style={[styles.root, { backgroundColor: theme.bg }]}
+            contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.md }]}
             showsVerticalScrollIndicator={false}
         >
+            <AppHeader />
+
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.textPrimary }]}>Receipts</Text>
                 <View style={[styles.badge, { backgroundColor: theme.primary + '15' }]}>
@@ -68,8 +72,9 @@ export default function ActivityLogs() {
             </Text>
 
             {LOGS.map((log, idx) => (
-                <Animated.View key={log.id} entering={FadeInDown.delay(idx * 100).duration(500)}>
-                    <Card style={[styles.logCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Animated.View key={log.id} entering={FadeInDown.delay(idx * 50).duration(400)} style={[styles.logCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                    <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <View style={styles.logInner}>
                         <View style={styles.logHeader}>
                             <View style={[styles.iconBox, { backgroundColor: theme.primary + '10' }]}>
                                 {log.type === 'ON-CHAIN' ? <Zap size={18} color={theme.primary} /> : <FileText size={18} color={theme.textMuted} />}
@@ -85,12 +90,12 @@ export default function ActivityLogs() {
 
                         <Text style={[styles.desc, { color: theme.textSecondary }]}>{log.desc}</Text>
 
-                        <View style={[styles.proofBadge, { backgroundColor: theme.isDark ? '#000' : '#F0F0F0' }]}>
+                        <View style={[styles.proofBadge, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
                             <Link size={12} color={theme.textMuted} />
                             <Text style={[styles.proofText, { color: theme.textMuted }]}>{log.proof}</Text>
                             <ChevronRight size={12} color={theme.textMuted} />
                         </View>
-                    </Card>
+                    </View>
                 </Animated.View>
             ))}
 
@@ -108,7 +113,8 @@ const styles = StyleSheet.create({
     badgeText: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
     subtitle: { fontSize: 15, lineHeight: 22, marginBottom: 32 },
 
-    logCard: { padding: 20, borderRadius: 28, borderWidth: 1, marginBottom: 16 },
+    logCard: { borderRadius: 28, borderWidth: 1, marginBottom: 16, overflow: 'hidden' },
+    logInner: { padding: 20 },
     logHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 16 },
     iconBox: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
     actionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

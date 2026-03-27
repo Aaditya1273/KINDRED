@@ -1,11 +1,12 @@
 import { Redirect, SplashScreen, Tabs } from 'expo-router';
 import * as React from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
 import { useCallback, useEffect } from 'react';
 import { useAuthStore as useAuth } from '@/features/auth/use-auth-store';
 import { useIsFirstTime } from '@/lib/hooks/use-is-first-time';
 import { Home, Sparkle, PieChart, HelpCircle, User2, Shield, ScrollText } from 'lucide-react-native';
 import { useAppTheme } from '@/theme/tokens';
+import { BlurView } from 'expo-blur';
 
 export default function TabLayout() {
     const status = useAuth.use.status();
@@ -27,15 +28,23 @@ export default function TabLayout() {
         <Tabs screenOptions={{
             tabBarActiveTintColor: theme.primary,
             tabBarInactiveTintColor: theme.textSecondary,
+            tabBarBackground: () => (
+                <BlurView
+                    intensity={Platform.OS === 'ios' ? 40 : 30}
+                    tint={theme.isDark ? 'dark' : 'light'}
+                    style={StyleSheet.absoluteFill}
+                />
+            ),
             tabBarStyle: {
-                backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF',
+                backgroundColor: 'transparent',
                 borderTopWidth: 1,
-                borderTopColor: theme.border,
+                borderTopColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                 height: Platform.OS === 'ios' ? 88 : 70,
                 paddingBottom: Platform.OS === 'ios' ? 30 : 10,
                 paddingTop: 10,
                 elevation: 0,
                 shadowOpacity: 0,
+                position: 'absolute',
             },
             tabBarItemStyle: {
                 height: 50,
@@ -90,6 +99,7 @@ export default function TabLayout() {
             <Tabs.Screen name="style" options={{ href: null }} />
             <Tabs.Screen name="yield" options={{ href: null }} />
             <Tabs.Screen name="history" options={{ href: null }} />
+            <Tabs.Screen name="data-control" options={{ href: null }} />
         </Tabs>
     );
 }

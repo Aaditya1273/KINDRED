@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import { HelpCircle, ChevronRight, MessageSquare, Zap, Shield, PieChart, Lock, Fingerprint, CheckCircle } from 'lucide-react-native';
@@ -48,8 +49,9 @@ const FAQItem = ({ item, index }: any) => {
         <Animated.View
             entering={FadeInDown.delay(index * 100).duration(500)}
             layout={Layout.springify()}
-            style={[styles.faqCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.faqCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
         >
+            <BlurView intensity={15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <Pressable onPress={() => setExpanded(!expanded)} style={styles.faqHeader}>
                 <View style={[styles.iconBox, { backgroundColor: theme.primary + '15' }]}>
                     <Icon size={18} color={theme.primary} />
@@ -87,29 +89,36 @@ export default function RebornFAQ() {
                 </View>
 
                 {/* Migrated Reasoning Logs */}
-                <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+                <Animated.View entering={FadeInDown.delay(400).duration(500)} style={[styles.logSection, { marginTop: 40 }]}>
                     <Text style={[styles.sectionTitleHeader, { color: theme.textPrimary }]}>Agent Verification Logs</Text>
-                    <View style={[styles.logCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                        {REASONING_LOGS.map((log, i) => (
-                            <View key={i} style={[styles.logItem, { borderBottomColor: i === REASONING_LOGS.length - 1 ? 'transparent' : theme.border }]}>
-                                <View style={styles.logHeader}>
-                                    <CheckCircle size={14} color={theme.positive} />
-                                    <Text style={[styles.logAction, { color: theme.textPrimary }]}>{log.action}</Text>
+                    <View style={[styles.logCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                        <BlurView intensity={20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={styles.logInner}>
+                            {REASONING_LOGS.map((log, i) => (
+                                <View key={i} style={[styles.logItem, { borderBottomColor: i === REASONING_LOGS.length - 1 ? 'transparent' : 'rgba(0,0,0,0.05)' }]}>
+                                    <View style={styles.logHeader}>
+                                        <CheckCircle size={14} color={theme.positive} />
+                                        <Text style={[styles.logAction, { color: theme.textPrimary }]}>{log.action}</Text>
+                                    </View>
+                                    <Text style={[styles.logReason, { color: theme.textSecondary }]}>{log.reason}</Text>
                                 </View>
-                                <Text style={[styles.logReason, { color: theme.textSecondary }]}>{log.reason}</Text>
-                            </View>
-                        ))}
+                            ))}
+                        </View>
                     </View>
                 </Animated.View>
 
-                <View style={[styles.supportCard, { backgroundColor: theme.primary + '08', borderColor: theme.primary + '20' }]}>
-                    <Text style={[styles.supportTitle, { color: theme.primary }]}>Still have questions?</Text>
-                    <Text style={[styles.supportText, { color: theme.textSecondary }]}>
-                        Our team is available 24/7 to help you optimize your agent.
-                    </Text>
-                    <Pressable style={[styles.supportBtn, { backgroundColor: theme.primary }]}>
-                        <Text style={styles.supportBtnText}>Contact Support</Text>
-                    </Pressable>
+                <View style={[styles.supportCard, { borderColor: theme.primary + '30', overflow: 'hidden' }]}>
+                    <BlurView intensity={20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.primary + '03' }]} />
+                    <View style={styles.supportInner}>
+                        <Text style={[styles.supportTitle, { color: theme.primary }]}>Still have questions?</Text>
+                        <Text style={[styles.supportText, { color: theme.textSecondary }]}>
+                            Our team is available 24/7 to help you optimize your agent.
+                        </Text>
+                        <Pressable style={[styles.supportBtn, { backgroundColor: theme.primary }]}>
+                            <Text style={styles.supportBtnText}>Contact Support</Text>
+                        </Pressable>
+                    </View>
                 </View>
 
                 <View style={{ height: 100 }} />
@@ -131,14 +140,17 @@ const styles = StyleSheet.create({
     faqContent: { paddingHorizontal: 20, paddingBottom: 20, paddingLeft: 76 },
     answer: { fontSize: 14, lineHeight: 22, fontWeight: '500' },
 
-    supportCard: { marginTop: 40, padding: 24, borderRadius: 28, borderWidth: 1, alignItems: 'center', gap: 12 },
+    supportCard: { marginTop: 40, borderRadius: 28, borderWidth: 1, overflow: 'hidden' },
+    supportInner: { padding: 24, alignItems: 'center', gap: 12 },
     supportTitle: { fontSize: 20, fontWeight: '800' },
     supportText: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
     supportBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16, marginTop: 8 },
     supportBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 
-    sectionTitleHeader: { fontSize: 20, fontWeight: '800', marginTop: 40, marginBottom: 16 },
+    logSection: { marginTop: 40 },
+    sectionTitleHeader: { fontSize: 20, fontWeight: '800', marginBottom: 16 },
     logCard: { borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
+    logInner: { padding: 0 },
     logItem: { padding: 16, borderBottomWidth: 1 },
     logHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
     logAction: { fontSize: 14, fontWeight: '700' },

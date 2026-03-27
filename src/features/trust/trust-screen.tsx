@@ -4,14 +4,16 @@
  * "Hold to reveal" interactions, expandable logs
  */
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Text } from '@/components/ui';
 import { Card, PressableCard } from '@/components/ui/card';
 import { useAgentStore } from '@/lib/agent/use-agent-store';
-import { Shield, Lock, Eye, EyeOff, ChevronRight, CheckCircle, Database, Fingerprint, Settings, Zap, History } from 'lucide-react-native';
+import { Shield, Lock, Eye, EyeOff, ChevronRight, CheckCircle, Database, Fingerprint, Settings, Zap, History, ChevronUp, ChevronDown } from 'lucide-react-native';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
+import { AppHeader } from '@/components/reborn/AppHeader';
 import { router } from 'expo-router';
 
 function HoldToReveal({ label, value }: { label: string; value: string }) {
@@ -67,10 +69,12 @@ export function TrustScreen() {
 
     return (
         <ScrollView
-            style={[styles.root, { paddingTop: insets.top, backgroundColor: theme.bg }]}
-            contentContainerStyle={styles.content}
+            style={[styles.root, { backgroundColor: theme.bg }]}
+            contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.md }]}
             showsVerticalScrollIndicator={false}
         >
+            <AppHeader />
+
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.textPrimary }]}>The Blind Wealth Manager</Text>
                 <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
@@ -78,9 +82,9 @@ export function TrustScreen() {
                 </Text>
             </View>
 
-            {/* Zama FHE / Blind Data */}
-            <Animated.View entering={FadeInDown.duration(400)}>
-                <Card style={[styles.mainCard, { backgroundColor: theme.isDark ? '#111' : '#F9F9F9' }]}>
+            <Animated.View entering={FadeInDown.duration(400)} style={[styles.mainCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }]}>
+                <BlurView intensity={Platform.OS === 'web' ? 20 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                <View style={styles.cardInner}>
                     <View style={styles.cardHeader}>
                         <View style={[styles.iconBox, { backgroundColor: theme.primary + '15' }]}>
                             <Lock size={20} color={theme.primary} />
@@ -101,50 +105,59 @@ export function TrustScreen() {
                         <Text style={[styles.actionBtnText, { color: theme.textPrimary }]}>Upload Data for Audit</Text>
                         <ChevronRight size={16} color={theme.textMuted} />
                     </Pressable>
-                </Card>
+                </View>
             </Animated.View>
 
             {/* Consumer DeFi Features */}
             <View style={styles.grid}>
                 <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.gridHalf}>
-                    <Card style={styles.smallCard}>
-                        <Zap size={20} color={theme.primary} />
-                        <Text style={[styles.smallTitle, { color: theme.textPrimary }]}>Smart Cash</Text>
-                        <Text style={[styles.smallDesc, { color: theme.textSecondary }]}>Automated yield loops on Flow.</Text>
-                    </Card>
+                    <View style={[styles.smallCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                        <BlurView intensity={15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={styles.smallInner}>
+                            <Zap size={20} color={theme.primary} />
+                            <Text style={[styles.smallTitle, { color: theme.textPrimary }]}>Smart Cash</Text>
+                            <Text style={[styles.smallDesc, { color: theme.textSecondary }]}>Automated yield loops on Flow.</Text>
+                        </View>
+                    </View>
                 </Animated.View>
                 <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.gridHalf}>
-                    <Card style={styles.smallCard}>
-                        <History size={20} color={theme.positive} />
-                        <Text style={[styles.smallTitle, { color: theme.textPrimary }]}>Scheduled</Text>
-                        <Text style={[styles.smallDesc, { color: theme.textSecondary }]}>Systematic savings executed weekly.</Text>
-                    </Card>
+                    <View style={[styles.smallCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                        <BlurView intensity={15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={styles.smallInner}>
+                            <History size={20} color={theme.positive} />
+                            <Text style={[styles.smallTitle, { color: theme.textPrimary }]}>Scheduled</Text>
+                            <Text style={[styles.smallDesc, { color: theme.textSecondary }]}>Systematic savings executed weekly.</Text>
+                        </View>
+                    </View>
                 </Animated.View>
             </View>
 
             {/* Identity & Sovereignty */}
             <Animated.View entering={FadeInDown.delay(300).duration(500)}>
                 <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Security Protocols</Text>
-                <View style={[styles.protoList, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                    <ProtoItem
-                        icon={Fingerprint}
-                        label="World ID"
-                        status="Orb Verified"
-                        desc="One human, one elite financial agent."
-                    />
-                    <ProtoItem
-                        icon={Shield}
-                        label="Lit Protocol"
-                        status="Active"
-                        desc="Programmable signing via PKP."
-                    />
-                    <ProtoItem
-                        icon={Database}
-                        label="Storacha"
-                        status="Immutable"
-                        desc="Long-term memory stored on Filecoin."
-                        isLast
-                    />
+                <View style={[styles.protoList, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                    <BlurView intensity={Platform.OS === 'web' ? 20 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <View style={styles.protoInner}>
+                        <ProtoItem
+                            icon={Fingerprint}
+                            label="World ID"
+                            status="Orb Verified"
+                            desc="One human, one elite financial agent."
+                        />
+                        <ProtoItem
+                            icon={Shield}
+                            label="Lit Protocol"
+                            status="Active"
+                            desc="Programmable signing via PKP."
+                        />
+                        <ProtoItem
+                            icon={Database}
+                            label="Storacha"
+                            status="Immutable"
+                            desc="Long-term memory stored on Filecoin."
+                            isLast
+                        />
+                    </View>
                 </View>
             </Animated.View>
 
@@ -183,7 +196,8 @@ const styles = StyleSheet.create({
     title: { fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
     subtitle: { fontSize: 16, fontWeight: '500', marginTop: 4, lineHeight: 22 },
 
-    mainCard: { padding: Spacing.lg, borderRadius: 28, borderWidth: 1, marginBottom: Spacing.md },
+    mainCard: { borderRadius: 28, borderWidth: 1, marginBottom: Spacing.md, overflow: 'hidden' },
+    cardInner: { padding: Spacing.lg },
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
     iconBox: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
     cardTitle: { fontSize: 18, fontWeight: '800' },
@@ -196,12 +210,14 @@ const styles = StyleSheet.create({
 
     grid: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg },
     gridHalf: { flex: 1 },
-    smallCard: { padding: Spacing.md, borderRadius: 24, gap: 8 },
+    smallCard: { borderRadius: 24, overflow: 'hidden', borderWidth: 1 },
+    smallInner: { padding: Spacing.md, gap: 8 },
     smallTitle: { fontSize: 15, fontWeight: '700' },
     smallDesc: { fontSize: 12, lineHeight: 16 },
 
     sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, marginLeft: 4 },
     protoList: { borderRadius: 28, borderWidth: 1, overflow: 'hidden' },
+    protoInner: { padding: 0 },
     protoItem: { padding: 20, borderBottomWidth: 1 },
     protoHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
     protoLabel: { fontSize: 15, fontWeight: '700', flex: 1 },
@@ -211,5 +227,17 @@ const styles = StyleSheet.create({
 
     footer: { marginTop: Spacing.xl, alignItems: 'center' },
     auditLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    auditLinkText: { fontSize: 13, fontWeight: '600' }
+    auditLinkText: { fontSize: 13, fontWeight: '600' },
+
+    // Hold to Reveal
+    holdRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderTopWidth: 1, marginTop: 12 },
+    holdLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    holdValue: { fontSize: 15, fontWeight: '600', marginTop: 2, flex: 1 },
+
+    // Reasoning
+    reasonRow: { paddingVertical: 14, borderTopWidth: 1 },
+    reasonHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    reasonAction: { fontSize: 14, fontWeight: '600', flex: 1 },
+    reasonDetail: { marginTop: 8, paddingLeft: 24 },
+    reasonText: { fontSize: 13, lineHeight: 18 },
 });
