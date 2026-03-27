@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
@@ -306,7 +306,7 @@ export default function RebornDashboard() {
                     <QuickActionButton icon={Plus} label="Add Cash" delay={100} onPress={() => handleAction('Add Cash')} />
                     <QuickActionButton icon={ArrowDownLeft} label="Exchange" delay={200} onPress={() => handleAction('Exchange')} />
                     <QuickActionButton icon={ArrowUpRight} label="Withdraw" delay={300} onPress={() => handleAction('Withdraw')} />
-                    <QuickActionButton icon={Pause} label="Pause AI" delay={400} hasBorder onPress={() => handleAction('Pause AI')} />
+                    <QuickActionButton icon={Pause} label="Pause AI" delay={400} onPress={() => handleAction('Pause AI')} />
                 </View>
 
                 {/* Quick Action Modal */}
