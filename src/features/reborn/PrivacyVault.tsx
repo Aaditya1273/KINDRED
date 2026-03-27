@@ -18,13 +18,6 @@ export default function PrivacyVault() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
     const [revokeVisible, setRevokeVisible] = useState(false);
-    const [vaultModalVisible, setVaultModalVisible] = useState(false);
-    const [selectedVault, setSelectedVault] = useState<any>(null);
-
-    const openVaultItem = (label: string, status: string, icon: any) => {
-        setSelectedVault({ label, status, icon });
-        setVaultModalVisible(true);
-    };
 
     return (
         <View style={[styles.root, { backgroundColor: theme.bg }]}>
@@ -85,7 +78,6 @@ export default function PrivacyVault() {
                             label="Bank Statements"
                             status="Encrypted & Uploaded"
                             color={theme.positive}
-                            onPress={() => openVaultItem('Bank Statements', 'Encrypted & Uploaded', Database)}
                         />
                         <VaultItem
                             icon={ActivityIcon}
@@ -100,7 +92,6 @@ export default function PrivacyVault() {
                             status="World ID Verified"
                             color={theme.positive}
                             isLast
-                            onPress={() => openVaultItem('Identity Verification', 'World ID Verified', Fingerprint)}
                         />
                     </View>
                 </Animated.View>
@@ -115,36 +106,6 @@ export default function PrivacyVault() {
                 </Pressable>
 
                 <View style={{ height: 120 }} />
-
-                {/* Vault Item Modal */}
-                <Modal animationType="fade" transparent={true} visible={vaultModalVisible} onRequestClose={() => setVaultModalVisible(false)}>
-                    <Pressable style={styles.modalOverlay} onPress={() => setVaultModalVisible(false)}>
-                        <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                        <Pressable
-                            style={[styles.modalContent, { backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)', borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-                            onPress={(e) => e.stopPropagation()}
-                        >
-                            <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                            <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
-                                <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{selectedVault?.label}</Text>
-                                <Pressable onPress={() => setVaultModalVisible(false)} style={styles.modalCloseBtn}>
-                                    <Text style={{ color: theme.primary, fontWeight: '700' }}>Close</Text>
-                                </Pressable>
-                            </View>
-                            <View style={styles.modalBody}>
-                                <View style={styles.vaultDetailBox}>
-                                    <Lock size={32} color={theme.textMuted} style={{ marginBottom: 12 }} />
-                                    <Text style={[styles.vaultDetailText, { color: theme.textSecondary }]}>
-                                        This data is encrypted using Fully Homomorphic Encryption (FHE). KINDRED can analyze it to find yields, but cannot see the raw values.
-                                    </Text>
-                                    <Text style={[styles.vaultStatusHighlight, { color: theme.primary }]}>
-                                        Status: {selectedVault?.status}
-                                    </Text>
-                                </View>
-                            </View>
-                        </Pressable>
-                    </Pressable>
-                </Modal>
 
                 {/* Revoke Warning Modal */}
                 <Modal animationType="fade" transparent={true} visible={revokeVisible} onRequestClose={() => setRevokeVisible(false)}>
@@ -185,13 +146,34 @@ export default function PrivacyVault() {
 
 const VaultItem = ({ icon: Icon, label, status, color, isLast, onPress }: any) => {
     const theme = useAppTheme();
+
+    if (onPress) {
+        return (
+            <Pressable
+                onPress={onPress}
+                style={({ pressed }) => [
+                    styles.vaultItem,
+                    !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 },
+                    pressed && { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
+                ]}
+            >
+                <View style={[styles.iconBox, { backgroundColor: color + '15' }]}>
+                    <Icon size={18} color={color} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={[styles.vaultLabel, { color: theme.textPrimary }]}>{label}</Text>
+                    <Text style={[styles.vaultStatus, { color: theme.textSecondary }]}>{status}</Text>
+                </View>
+                <ChevronRight size={16} color={theme.textMuted} />
+            </Pressable>
+        );
+    }
+
     return (
-        <Pressable
-            onPress={onPress}
-            style={({ pressed }) => [
+        <View
+            style={[
                 styles.vaultItem,
-                !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 },
-                pressed && { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
+                !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 }
             ]}
         >
             <View style={[styles.iconBox, { backgroundColor: color + '15' }]}>
@@ -201,8 +183,8 @@ const VaultItem = ({ icon: Icon, label, status, color, isLast, onPress }: any) =
                 <Text style={[styles.vaultLabel, { color: theme.textPrimary }]}>{label}</Text>
                 <Text style={[styles.vaultStatus, { color: theme.textSecondary }]}>{status}</Text>
             </View>
-            <ChevronRight size={16} color={theme.textMuted} />
-        </Pressable>
+            <Lock size={14} color={theme.textMuted} opacity={0.5} />
+        </View>
     );
 };
 

@@ -121,21 +121,15 @@ export function PortfolioScreen() {
     const { address } = useAccount();
     const portfolio = useAgentStore.use.portfolio();
     const refreshPortfolio = useAgentStore.use.refreshPortfolio();
-    const signOut = useAuth.use.signOut();
     const { selectedTheme, setSelectedTheme } = useSelectedTheme();
     const [refreshing, setRefreshing] = React.useState(false);
-    const [settingsModalVisible, setSettingsModalVisible] = React.useState(false);
-    const [settingsTitle, setSettingsTitle] = React.useState('');
-
-    const openSetting = (title: string) => {
-        setSettingsTitle(title);
-        setSettingsModalVisible(true);
-    };
 
     const toggleTheme = () => {
         const next: any = selectedTheme === 'dark' ? 'light' : 'dark';
         setSelectedTheme(next);
     };
+
+    const signOut = useAuth.use.signOut();
 
     useEffect(() => {
         if (address) refreshPortfolio(address);
@@ -185,7 +179,6 @@ export function PortfolioScreen() {
                     label="World ID Verification"
                     value="Verified"
                     color={theme.positive}
-                    onPress={() => openSetting('World ID Verification')}
                 />
                 <SettingItem
                     icon={Key}
@@ -198,7 +191,6 @@ export function PortfolioScreen() {
                     label="Recovery Email"
                     value="aaditya***@gmail.com"
                     isLast
-                    onPress={() => openSetting('Recovery Options')}
                 />
             </View>
 
@@ -280,13 +272,11 @@ export function PortfolioScreen() {
                 <SettingItem
                     icon={Shield}
                     label="Security & Privacy"
-                    onPress={() => openSetting('Security & Privacy')}
                 />
                 <SettingItem
                     icon={Globe}
                     label="Language"
                     value="English"
-                    onPress={() => openSetting('Language Settings')}
                 />
                 <SettingItem
                     icon={HelpCircle}
@@ -303,33 +293,6 @@ export function PortfolioScreen() {
             </View>
 
             <View style={{ height: Spacing.xxl }} />
-
-            {/* General Settings Modal */}
-            <Modal animationType="fade" transparent={true} visible={settingsModalVisible} onRequestClose={() => setSettingsModalVisible(false)}>
-                <Pressable style={styles.modalOverlay} onPress={() => setSettingsModalVisible(false)}>
-                    <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                    <Pressable
-                        style={[styles.modalContent, { backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)', borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-                        onPress={(e) => e.stopPropagation()}
-                    >
-                        <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                        <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
-                            <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{settingsTitle}</Text>
-                            <Pressable onPress={() => setSettingsModalVisible(false)} style={styles.modalCloseBtn}>
-                                <Text style={{ color: theme.primary, fontWeight: '700' }}>Close</Text>
-                            </Pressable>
-                        </View>
-                        <View style={styles.modalBody}>
-                            <View style={styles.vaultDetailBox}>
-                                <Shield size={32} color={theme.textMuted} style={{ marginBottom: 12 }} />
-                                <Text style={[styles.vaultDetailText, { color: theme.textSecondary }]}>
-                                    Protected by KINDRED Sovereign Infrastructure. Advanced configuration options will be available soon.
-                                </Text>
-                            </View>
-                        </View>
-                    </Pressable>
-                </Pressable>
-            </Modal>
         </ScrollView>
     );
 }
@@ -389,24 +352,6 @@ const styles = StyleSheet.create({
     faqIconBox: { width: 64, height: 64, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
     faqTitle: { fontSize: 16, fontWeight: '700' },
     faqDesc: { fontSize: 13, marginTop: 2 },
-
-    // Modal Styles
-    modalOverlay: {
-        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-        width: '85%', maxWidth: 400, borderRadius: 32, overflow: 'hidden', borderWidth: 1,
-        ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40 },
-            web: { boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }
-        })
-    },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, zIndex: 10 },
-    modalTitle: { fontSize: 20, fontWeight: '800' },
-    modalCloseBtn: { padding: 8 },
-    modalBody: { padding: 24, zIndex: 10 },
-    vaultDetailBox: { alignItems: 'center', padding: 16 },
-    vaultDetailText: { fontSize: 14, lineHeight: 22, textAlign: 'center', fontWeight: '500' },
 });
 
 const SettingItem = ({ icon: Icon, label, value, onPress, isLast, color: customColor }: any) => {

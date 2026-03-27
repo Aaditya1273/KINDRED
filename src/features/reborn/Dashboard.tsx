@@ -348,7 +348,7 @@ export default function RebornDashboard() {
                                         { backgroundColor: selectedAction === 'Pause AI' ? theme.negative : theme.primary }
                                     ]}
                                 >
-                                    <Text style={[styles.modalActionBtnText, { color: theme.white || '#fff' }]}>
+                                    <Text style={[styles.modalActionBtnText, { color: '#fff' }]}>
                                         {selectedAction === 'Pause AI' ? 'Confirm System Halt' : `Confirm ${selectedAction}`}
                                     </Text>
                                 </Pressable>
