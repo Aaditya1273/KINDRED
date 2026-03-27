@@ -4,7 +4,7 @@ import { View, Platform } from 'react-native';
 import { useCallback, useEffect } from 'react';
 import { useAuthStore as useAuth } from '@/features/auth/use-auth-store';
 import { useIsFirstTime } from '@/lib/hooks/use-is-first-time';
-import { Home, Sparkle, PieChart, HelpCircle, User2 } from 'lucide-react-native';
+import { Home, Sparkle, PieChart, HelpCircle, User2, Shield, ScrollText } from 'lucide-react-native';
 import { useAppTheme } from '@/theme/tokens';
 
 export default function TabLayout() {
@@ -71,20 +71,22 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="portfolio"
+                name="activity"
                 options={{
-                    title: 'Portfolio',
-                    tabBarIcon: ({ color, size }) => <PieChart color={color} size={size + 4} strokeWidth={2.5} />
+                    title: 'Logs',
+                    tabBarIcon: ({ color, size }) => <ScrollText color={color} size={size + 4} strokeWidth={2.5} />
                 }}
             />
             <Tabs.Screen
-                name="faq"
+                name="privacy-vault"
                 options={{
-                    title: 'FAQ',
-                    tabBarIcon: ({ color, size }) => <HelpCircle color={color} size={size + 4} strokeWidth={2.5} />
+                    title: 'Vault',
+                    tabBarIcon: ({ color, size }) => <Shield color={color} size={size + 4} strokeWidth={2.5} />
                 }}
             />
             {/* Hidden routes */}
+            <Tabs.Screen name="portfolio" options={{ href: null }} />
+            <Tabs.Screen name="faq" options={{ href: null }} />
             <Tabs.Screen name="style" options={{ href: null }} />
             <Tabs.Screen name="yield" options={{ href: null }} />
             <Tabs.Screen name="history" options={{ href: null }} />

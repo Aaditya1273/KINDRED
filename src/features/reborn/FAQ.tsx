@@ -2,30 +2,41 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
-import { HelpCircle, ChevronRight, MessageSquare, Zap, Shield, PieChart } from 'lucide-react-native';
+import { HelpCircle, ChevronRight, MessageSquare, Zap, Shield, PieChart, Lock, Fingerprint, CheckCircle } from 'lucide-react-native';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 
 const FAQ_DATA = [
     {
         icon: Zap,
         question: 'What is a KINDRED Agent?',
-        answer: 'A KINDRED Agent is an AI-powered entity that automates yield generation and portfolio rebalancing based on your risk profile.'
+        answer: 'KINDRED (Kinetic Intelligence & Networked Decentralized REal-time Data) is the world’s first Autonomous Personal Hedge Fund and Data Sovereign. It manages your digital and financial life while you sleep.'
+    },
+    {
+        icon: Lock,
+        question: 'How does the Blind Wealth Manager work?',
+        answer: 'KINDRED uses FHE (Fully Homomorphic Encryption) to analyze your private spending habits and bank statements to give you Alpha/DeFi advice without ever seeing your actual data.'
     },
     {
         icon: Shield,
         question: 'Are my assets secure?',
-        answer: 'Yes. KINDRED is non-custodial. Your assets remain on-chain, and the agent only has permission to execute authorized strategies.'
+        answer: 'KINDRED is non-custodial and uses Lit Protocol for Programmable Signing. The agent trades on your behalf only when specific market conditions that you authorize are met.'
     },
     {
-        icon: PieChart,
-        question: 'How is yield calculated?',
-        answer: 'Yield is calculated based on current market rates from integrated protocols like Aave, Uniswap, and Lido, optimized by our AI agents.'
+        icon: Fingerprint,
+        question: 'What is the World ID tether?',
+        answer: 'To prevent bot-farming, every KINDRED agent is tethered to a World ID. One human, one elite financial agent.'
     },
     {
-        icon: MessageSquare,
-        question: 'How do I talk to my agent?',
-        answer: 'Navigate to the "Agent" tab (Spark icon) to interact with KINDRED directly using natural language.'
+        icon: Zap,
+        question: 'What is Smart Cash?',
+        answer: 'Smart Cash refers to automated yield loops and scheduled savings on Flow, managed autonomously by your agent to beat market inflation.'
     }
+];
+
+const REASONING_LOGS = [
+    { action: 'Delta-Neutral Rebalance', reason: 'USDC/FLOW LP ratio drifted 3.2% from target. Rebalanced to protect capital.' },
+    { action: 'Slippage Guard', reason: 'Attempted swap on Flow, but slippage was too high (>0.5%), so the task was rescheduled for a lower volatility window.' },
+    { action: 'Optimized Savings', reason: 'Weekly auto-deposit of $200 USDC into Flow vault. Verified on-chain.' },
 ];
 
 const FAQItem = ({ item, index }: any) => {
@@ -75,6 +86,22 @@ export default function RebornFAQ() {
                     ))}
                 </View>
 
+                {/* Migrated Reasoning Logs */}
+                <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+                    <Text style={[styles.sectionTitleHeader, { color: theme.textPrimary }]}>Agent Verification Logs</Text>
+                    <View style={[styles.logCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                        {REASONING_LOGS.map((log, i) => (
+                            <View key={i} style={[styles.logItem, { borderBottomColor: i === REASONING_LOGS.length - 1 ? 'transparent' : theme.border }]}>
+                                <View style={styles.logHeader}>
+                                    <CheckCircle size={14} color={theme.positive} />
+                                    <Text style={[styles.logAction, { color: theme.textPrimary }]}>{log.action}</Text>
+                                </View>
+                                <Text style={[styles.logReason, { color: theme.textSecondary }]}>{log.reason}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </Animated.View>
+
                 <View style={[styles.supportCard, { backgroundColor: theme.primary + '08', borderColor: theme.primary + '20' }]}>
                     <Text style={[styles.supportTitle, { color: theme.primary }]}>Still have questions?</Text>
                     <Text style={[styles.supportText, { color: theme.textSecondary }]}>
@@ -108,5 +135,12 @@ const styles = StyleSheet.create({
     supportTitle: { fontSize: 20, fontWeight: '800' },
     supportText: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
     supportBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16, marginTop: 8 },
-    supportBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' }
+    supportBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+
+    sectionTitleHeader: { fontSize: 20, fontWeight: '800', marginTop: 40, marginBottom: 16 },
+    logCard: { borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
+    logItem: { padding: 16, borderBottomWidth: 1 },
+    logHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+    logAction: { fontSize: 14, fontWeight: '700' },
+    logReason: { fontSize: 13, lineHeight: 18 }
 });

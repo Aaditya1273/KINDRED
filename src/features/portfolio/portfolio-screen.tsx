@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import {
     RefreshControl,
     StyleSheet,
+    Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -18,14 +19,15 @@ import { useAccount } from '@reown/appkit-react-native';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import { useAuthStore as useAuth } from '@/features/auth/use-auth-store';
 import { useSelectedTheme } from '@/lib/hooks/use-selected-theme';
-import { Shield, Moon, Sun, Globe, Heart, LogOut, ChevronRight } from 'lucide-react-native';
+import { Shield, Moon, Sun, Globe, Heart, LogOut, ChevronRight, HelpCircle } from 'lucide-react-native';
 import type { TokenBalance } from '@/lib/agent/portfolio';
+import { router } from 'expo-router';
 
 const ASSET_ROLES: Record<string, string> = {
     ETH: 'Growth',
     BTC: 'Store of Value',
     USDC: 'Stability',
-    FLOW: 'Yield Engine',
+    FLOW: 'Smart Cash Engine',
 };
 
 // Minimal donut chart using SVG
@@ -166,6 +168,24 @@ export function PortfolioScreen() {
                 </Card>
             )}
 
+            {/* FAQ Section Moved to Top */}
+            <View style={styles.settingsHeader}>
+                <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Resources</Text>
+            </View>
+            <Pressable
+                onPress={() => router.push('/faq')}
+                style={[styles.faqCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            >
+                <View style={[styles.faqIconBox, { backgroundColor: theme.primary + '15' }]}>
+                    <HelpCircle size={32} color={theme.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={[styles.faqTitle, { color: theme.textPrimary }]}>KINDRED Help Center</Text>
+                    <Text style={[styles.faqDesc, { color: theme.textSecondary }]}>Guides, AI Reasoning & Support</Text>
+                </View>
+                <ChevronRight size={20} color={theme.textMuted} />
+            </Pressable>
+
             {/* Asset List */}
             <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Assets</Text>
             {tokens.length === 0 ? (
@@ -246,6 +266,14 @@ const styles = StyleSheet.create({
     iconContainer: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
     settingLabel: { fontSize: 14, fontWeight: '600' },
     settingValue: { fontSize: 13, fontWeight: '500' },
+
+    faqCard: {
+        flexDirection: 'row', alignItems: 'center', gap: 16,
+        padding: 20, borderRadius: 28, borderWidth: 1, marginBottom: 24, marginTop: 8
+    },
+    faqIconBox: { width: 64, height: 64, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+    faqTitle: { fontSize: 16, fontWeight: '700' },
+    faqDesc: { fontSize: 13, marginTop: 2 },
 });
 
 const SettingItem = ({ icon: Icon, label, value, onPress, isLast, color: customColor }: any) => {

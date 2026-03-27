@@ -10,8 +10,9 @@ import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } fr
 import { Text } from '@/components/ui';
 import { Card, PressableCard } from '@/components/ui/card';
 import { useAgentStore } from '@/lib/agent/use-agent-store';
-import { Shield, Lock, Eye, EyeOff, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react-native';
+import { Shield, Lock, Eye, EyeOff, ChevronRight, CheckCircle, Database, Fingerprint, Settings, Zap, History } from 'lucide-react-native';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
+import { router } from 'expo-router';
 
 function HoldToReveal({ label, value }: { label: string; value: string }) {
     const [revealed, setRevealed] = useState(false);
@@ -62,9 +63,7 @@ const REASONING = [
 export function TrustScreen() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
-    const logs = useAgentStore.use.logs();
     const latestCID = useAgentStore.use.latestCID();
-    const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
     return (
         <ScrollView
@@ -72,69 +71,88 @@ export function TrustScreen() {
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
         >
-            <Text style={[styles.title, { color: theme.textPrimary }]}>Trust & Security</Text>
+            <View style={styles.header}>
+                <Text style={[styles.title, { color: theme.textPrimary }]}>The Blind Wealth Manager</Text>
+                <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+                    Automated financial growth with absolute data sovereignty.
+                </Text>
+            </View>
 
-            {/* FHE Status */}
-            <Animated.View entering={FadeInDown.duration(300)}>
-                <Card style={styles.fheCard}>
-                    <View style={styles.fheHeader}>
-                        <Lock size={18} color={theme.primary} />
-                        <Text style={[styles.fheTitle, { color: theme.textPrimary }]}>Zama FHE Active</Text>
-                        <View style={[styles.activeBadge, { backgroundColor: theme.primary + '22' }]}>
-                            <Text style={[styles.activeBadgeText, { color: theme.primary }]}>ON</Text>
+            {/* Zama FHE / Blind Data */}
+            <Animated.View entering={FadeInDown.duration(400)}>
+                <Card style={[styles.mainCard, { backgroundColor: theme.isDark ? '#111' : '#F9F9F9' }]}>
+                    <View style={styles.cardHeader}>
+                        <View style={[styles.iconBox, { backgroundColor: theme.primary + '15' }]}>
+                            <Lock size={20} color={theme.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Confidential Finance</Text>
+                            <Text style={[styles.cardTag, { color: theme.primary }]}>ZAMA FHE ACTIVE</Text>
                         </View>
                     </View>
-                    <Text style={[styles.fheDesc, { color: theme.textSecondary }]}>
-                        Your financial data is processed while encrypted. The agent never sees your raw balances or spending history.
+                    <Text style={[styles.cardDesc, { color: theme.textSecondary }]}>
+                        KINDRED analyzes your spending while encrypted. I optimize your wealth without ever seeing your raw data.
                     </Text>
-                    <HoldToReveal label="Encrypted spending goal" value="$4,200 / month" />
-                    <HoldToReveal label="FHE computation result" value="Yield opportunity: +24.1% APY detected" />
+                    <View style={styles.fheStatusRow}>
+                        <CheckCircle size={14} color={theme.positive} />
+                        <Text style={[styles.fheStatusText, { color: theme.textPrimary }]}>Private history uploaded</Text>
+                    </View>
+                    <Pressable style={[styles.actionBtn, { borderColor: theme.border }]}>
+                        <Text style={[styles.actionBtnText, { color: theme.textPrimary }]}>Upload Data for Audit</Text>
+                        <ChevronRight size={16} color={theme.textMuted} />
+                    </Pressable>
                 </Card>
             </Animated.View>
 
-            {/* Identity */}
-            <Animated.View entering={FadeInDown.delay(80).duration(300)}>
-                <Card style={styles.section}>
-                    <View style={styles.identityRow}>
-                        <Shield size={18} color={theme.positive} />
-                        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Identity Verified</Text>
-                    </View>
-                    <Text style={[styles.sectionDesc, { color: theme.textSecondary }]}>
-                        Your KINDRED agent is tethered to a World ID proof. One human, one agent. No bot farming.
-                    </Text>
-                    <View style={styles.verifiedRow}>
-                        <CheckCircle size={14} color={theme.positive} />
-                        <Text style={[styles.verifiedText, { color: theme.textSecondary }]}>World ID — Orb verified</Text>
-                    </View>
-                    <View style={styles.verifiedRow}>
-                        <CheckCircle size={14} color={theme.positive} />
-                        <Text style={[styles.verifiedText, { color: theme.textSecondary }]}>Lit Protocol PKP — Agent wallet bound</Text>
-                    </View>
-                    <View style={styles.verifiedRow}>
-                        <CheckCircle size={14} color={theme.positive} />
-                        <Text style={[styles.verifiedText, { color: theme.textSecondary }]}>Storacha CID — Memory immutable</Text>
-                    </View>
-                    {latestCID !== '' && (
-                        <Text style={[styles.cidText, { color: theme.textMuted }]} numberOfLines={1}>Memory: {latestCID}</Text>
-                    )}
-                </Card>
+            {/* Consumer DeFi Features */}
+            <View style={styles.grid}>
+                <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.gridHalf}>
+                    <Card style={styles.smallCard}>
+                        <Zap size={20} color={theme.primary} />
+                        <Text style={[styles.smallTitle, { color: theme.textPrimary }]}>Smart Cash</Text>
+                        <Text style={[styles.smallDesc, { color: theme.textSecondary }]}>Automated yield loops on Flow.</Text>
+                    </Card>
+                </Animated.View>
+                <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.gridHalf}>
+                    <Card style={styles.smallCard}>
+                        <History size={20} color={theme.positive} />
+                        <Text style={[styles.smallTitle, { color: theme.textPrimary }]}>Scheduled</Text>
+                        <Text style={[styles.smallDesc, { color: theme.textSecondary }]}>Systematic savings executed weekly.</Text>
+                    </Card>
+                </Animated.View>
+            </View>
+
+            {/* Identity & Sovereignty */}
+            <Animated.View entering={FadeInDown.delay(300).duration(500)}>
+                <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Security Protocols</Text>
+                <View style={[styles.protoList, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <ProtoItem
+                        icon={Fingerprint}
+                        label="World ID"
+                        status="Orb Verified"
+                        desc="One human, one elite financial agent."
+                    />
+                    <ProtoItem
+                        icon={Shield}
+                        label="Lit Protocol"
+                        status="Active"
+                        desc="Programmable signing via PKP."
+                    />
+                    <ProtoItem
+                        icon={Database}
+                        label="Storacha"
+                        status="Immutable"
+                        desc="Long-term memory stored on Filecoin."
+                        isLast
+                    />
+                </View>
             </Animated.View>
 
-            {/* AI Reasoning */}
-            <Animated.View entering={FadeInDown.delay(160).duration(300)}>
-                <Card style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Why the agent acted</Text>
-                    <Text style={[styles.sectionDesc, { color: theme.textSecondary }]}>Tap any action to see the reasoning.</Text>
-                    {REASONING.map((r, i) => (
-                        <ReasoningRow
-                            key={r.action}
-                            action={r.action}
-                            reason={r.reason}
-                            expanded={expandedIdx === i}
-                            onToggle={() => setExpandedIdx(expandedIdx === i ? null : i)}
-                        />
-                    ))}
-                </Card>
+            <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.footer}>
+                <Pressable onPress={() => router.push('/faq')} style={styles.auditLink}>
+                    <Text style={[styles.auditLinkText, { color: theme.textMuted }]}>View Verification Logs in FAQ</Text>
+                    <ChevronRight size={14} color={theme.textMuted} />
+                </Pressable>
             </Animated.View>
 
             <View style={{ height: Spacing.xxl }} />
@@ -142,33 +160,56 @@ export function TrustScreen() {
     );
 }
 
+const ProtoItem = ({ icon: Icon, label, status, desc, isLast }: any) => {
+    const theme = useAppTheme();
+    return (
+        <View style={[styles.protoItem, { borderBottomColor: isLast ? 'transparent' : theme.border }]}>
+            <View style={styles.protoHeader}>
+                <Icon size={18} color={theme.primary} />
+                <Text style={[styles.protoLabel, { color: theme.textPrimary }]}>{label}</Text>
+                <View style={[styles.protoBadge, { backgroundColor: theme.positive + '15' }]}>
+                    <Text style={[styles.protoBadgeText, { color: theme.positive }]}>{status}</Text>
+                </View>
+            </View>
+            <Text style={[styles.protoDesc, { color: theme.textSecondary }]}>{desc}</Text>
+        </View>
+    );
+};
+
 const styles = StyleSheet.create({
     root: { flex: 1 },
     content: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxl },
-    title: { fontSize: 28, fontWeight: '800', marginTop: Spacing.xl, marginBottom: Spacing.lg },
+    header: { marginTop: Spacing.xl, marginBottom: Spacing.lg },
+    title: { fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
+    subtitle: { fontSize: 16, fontWeight: '500', marginTop: 4, lineHeight: 22 },
 
-    fheCard: { padding: Spacing.md, marginBottom: Spacing.md },
-    fheHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.sm },
-    fheTitle: { fontSize: 15, fontWeight: '700', flex: 1 },
-    activeBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: Radius.full },
-    activeBadgeText: { fontSize: 10, fontWeight: '800' },
-    fheDesc: { fontSize: 13, lineHeight: 18, marginBottom: Spacing.md },
+    mainCard: { padding: Spacing.lg, borderRadius: 28, borderWidth: 1, marginBottom: Spacing.md },
+    cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+    iconBox: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+    cardTitle: { fontSize: 18, fontWeight: '800' },
+    cardTag: { fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+    cardDesc: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
+    fheStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+    fheStatusText: { fontSize: 13, fontWeight: '600' },
+    actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14, borderRadius: 16, borderWidth: 1, backgroundColor: 'rgba(0,0,0,0.02)' },
+    actionBtnText: { fontSize: 14, fontWeight: '700' },
 
-    holdRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1 },
-    holdLabel: { fontSize: 11, marginBottom: 2 },
-    holdValue: { fontSize: 13, fontWeight: '600' },
+    grid: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg },
+    gridHalf: { flex: 1 },
+    smallCard: { padding: Spacing.md, borderRadius: 24, gap: 8 },
+    smallTitle: { fontSize: 15, fontWeight: '700' },
+    smallDesc: { fontSize: 12, lineHeight: 16 },
 
-    section: { padding: Spacing.md, marginBottom: Spacing.md },
-    identityRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.sm },
-    sectionTitle: { fontSize: 15, fontWeight: '700' },
-    sectionDesc: { fontSize: 13, lineHeight: 18, marginBottom: Spacing.md },
-    verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-    verifiedText: { fontSize: 13 },
-    cidText: { fontSize: 10, marginTop: Spacing.sm },
+    sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, marginLeft: 4 },
+    protoList: { borderRadius: 28, borderWidth: 1, overflow: 'hidden' },
+    protoItem: { padding: 20, borderBottomWidth: 1 },
+    protoHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+    protoLabel: { fontSize: 15, fontWeight: '700', flex: 1 },
+    protoBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+    protoBadgeText: { fontSize: 10, fontWeight: '800' },
+    protoDesc: { fontSize: 13, lineHeight: 18, paddingLeft: 28 },
 
-    reasonRow: { borderTopWidth: 1, paddingVertical: Spacing.sm },
-    reasonHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    reasonAction: { flex: 1, fontSize: 13, fontWeight: '600' },
-    reasonDetail: { marginTop: Spacing.sm, paddingLeft: 22 },
-    reasonText: { fontSize: 12, lineHeight: 18 },
+    footer: { marginTop: Spacing.xl, alignItems: 'center' },
+    auditLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    auditLinkText: { fontSize: 13, fontWeight: '600' }
 });
