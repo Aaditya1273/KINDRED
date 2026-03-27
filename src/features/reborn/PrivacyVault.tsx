@@ -4,8 +4,9 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import { AppHeader } from '@/components/reborn/AppHeader';
-import { Lock, EyeOff, ShieldCheck, Database, Zap, ChevronRight, Fingerprint, Activity } from 'lucide-react-native';
+import { Lock, EyeOff, ShieldCheck, Database, Zap, ChevronRight, Fingerprint, Activity as ActivityIcon } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import { router } from 'expo-router';
 
 const INSIGHTS = [
     { text: "You overspend on subscriptions (₹1,200/month)", detail: "Detected 4 active auto-renewals." },
@@ -87,11 +88,11 @@ export default function PrivacyVault() {
                             onPress={() => openVaultItem('Bank Statements', 'Encrypted & Uploaded', Database)}
                         />
                         <VaultItem
-                            icon={Activity}
+                            icon={ActivityIcon}
                             label="Spending History"
                             status="Processing in FHE"
                             color={theme.primary}
-                            onPress={() => openVaultItem('Spending History', 'Processing in FHE', Activity)}
+                            onPress={() => router.push('/activity')}
                         />
                         <VaultItem
                             icon={Fingerprint}
