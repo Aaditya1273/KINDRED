@@ -10,6 +10,8 @@ import {
     StyleSheet,
     type ScrollView as RNScrollView,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { AppHeader } from '@/components/reborn/AppHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Text, View, ScrollView, Pressable, TextInput } from '@/components/ui';
@@ -96,11 +98,11 @@ export default function AgentScreen() {
             {!hasStarted ? (
                 <ScrollView
                     ref={scrollRef}
-                    style={styles.container}
-                    contentContainerStyle={[styles.content, { paddingTop: insets.top }]}
+                    style={styles.root}
+                    contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.md }]}
                     showsVerticalScrollIndicator={false}
                 >
-                    {renderHeader()}
+                    <AppHeader />
 
                     <View style={styles.centeredContent}>
                         {/* Hero Section */}
@@ -112,7 +114,8 @@ export default function AgentScreen() {
                         </Animated.View>
 
                         {/* Centered Input */}
-                        <View style={[styles.searchControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                        <View style={[styles.searchControl, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                            <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                             <Pressable style={styles.searchIconBtn}>
                                 <Camera size={20} color={theme.textSecondary} />
                             </Pressable>
@@ -150,13 +153,10 @@ export default function AgentScreen() {
                     </View>
                 </ScrollView>
             ) : (
-                <View style={styles.chatRoot}>
+                <View style={[styles.chatRoot, { backgroundColor: theme.bg }]}>
                     {/* Compact Header for Chat Mode */}
-                    <View style={[styles.compactHeader, { paddingTop: insets.top, borderBottomColor: theme.border }]}>
-                        <Text style={[styles.compactHeaderTitle, { color: theme.textPrimary }]}>Assistant</Text>
-                        <Pressable onPress={() => { setHasStarted(false); setMessages([]); }} style={styles.resetBtn}>
-                            <Text style={{ color: theme.primary, fontWeight: '600' }}>New Chat</Text>
-                        </Pressable>
+                    <View style={[styles.compactHeader, { paddingTop: insets.top + Spacing.sm, borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                        <AppHeader />
                     </View>
 
                     <ScrollView
@@ -172,17 +172,20 @@ export default function AgentScreen() {
                                 style={[
                                     styles.bubble,
                                     msg.role === 'user' ? styles.userBubble : styles.agentBubble,
-                                    { backgroundColor: msg.role === 'user' ? theme.primary + '15' : theme.surface }
+                                    { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
                                 ]}
                             >
+                                <BlurView intensity={Platform.OS === 'web' ? 10 : 15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                                {msg.role === 'user' && <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.primary + '10' }]} />}
                                 <Text style={[styles.bubbleText, { color: theme.textPrimary }]}>{msg.text}</Text>
                             </Animated.View>
                         ))}
                     </ScrollView>
 
                     {/* Bottom-pinned Input */}
-                    <View style={[styles.bottomInputArea, { paddingBottom: Spacing.md, borderTopColor: theme.border }]}>
-                        <View style={[styles.searchControl, { backgroundColor: theme.surface, borderColor: theme.border, marginBottom: 0 }]}>
+                    <View style={[styles.bottomInputArea, { paddingBottom: insets.bottom + Spacing.md, borderTopColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                        <View style={[styles.searchControl, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: 0 }]}>
+                            <BlurView intensity={Platform.OS === 'web' ? 20 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                             <Pressable style={styles.searchIconBtn}>
                                 <Camera size={20} color={theme.textSecondary} />
                             </Pressable>

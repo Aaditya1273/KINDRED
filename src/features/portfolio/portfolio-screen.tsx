@@ -8,7 +8,10 @@ import {
     RefreshControl,
     StyleSheet,
     Pressable,
+    Platform,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { AppHeader } from '@/components/reborn/AppHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
@@ -142,13 +145,16 @@ export function PortfolioScreen() {
 
     return (
         <ScrollView
-            style={[styles.root, { paddingTop: insets.top, backgroundColor: theme.bg }]}
-            contentContainerStyle={styles.content}
+            style={[styles.root, { backgroundColor: theme.bg }]}
+            contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.md }]}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
+            <AppHeader />
+
             <View style={styles.profileHeader}>
-                <View style={[styles.avatarBox, { backgroundColor: theme.primary + '15' }]}>
+                <View style={[styles.avatarBox, { backgroundColor: theme.primary + '15', borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderWidth: 1 }]}>
+                    <BlurView intensity={10} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                     <User size={32} color={theme.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -164,7 +170,8 @@ export function PortfolioScreen() {
             <View style={styles.settingsHeader}>
                 <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Identity & Security</Text>
             </View>
-            <View style={[styles.settingsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.settingsCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                 <SettingItem
                     icon={Fingerprint}
                     label="World ID Verification"
@@ -210,8 +217,9 @@ export function PortfolioScreen() {
             </View>
             <Pressable
                 onPress={() => router.push('/faq')}
-                style={[styles.faqCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                style={[styles.faqCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}
             >
+                <BlurView intensity={25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                 <View style={[styles.faqIconBox, { backgroundColor: theme.primary + '15' }]}>
                     <HelpCircle size={32} color={theme.primary} />
                 </View>
@@ -227,11 +235,13 @@ export function PortfolioScreen() {
                 <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Assets</Text>
             </View>
             {tokens.length === 0 ? (
-                <View style={[styles.settingsCard, styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View style={[styles.settingsCard, styles.emptyCard, { borderColor: theme.border }]}>
+                    <BlurView intensity={15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                     <Text style={[styles.emptyText, { color: theme.textMuted }]}>Connect wallet to see your portfolio.</Text>
                 </View>
             ) : (
-                <View style={[styles.settingsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View style={[styles.settingsCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                    <BlurView intensity={15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                     <View style={styles.assetList}>
                         {tokens.map((token, i) => (
                             <AssetRow
@@ -249,7 +259,8 @@ export function PortfolioScreen() {
                 <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Configuration</Text>
             </View>
 
-            <View style={[styles.settingsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.settingsCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                <BlurView intensity={20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                 <SettingItem
                     icon={theme.isDark ? Sun : Moon}
                     label="Appearance"
@@ -344,7 +355,7 @@ const SettingItem = ({ icon: Icon, label, value, onPress, isLast, color: customC
                 styles.settingItem,
                 {
                     backgroundColor: pressed ? (theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)') : 'transparent',
-                    borderBottomColor: isLast ? 'transparent' : theme.border
+                    borderBottomColor: isLast ? 'transparent' : (theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')
                 }
             ]}
         >

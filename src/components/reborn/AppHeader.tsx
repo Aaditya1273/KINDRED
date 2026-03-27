@@ -22,7 +22,7 @@ export const AppHeader = () => {
 
             {/* Center: Brand */}
             <View style={styles.centerBrand}>
-                <Text style={[styles.brandText, { color: theme.textPrimary }]}>KINDRED</Text>
+                <Text style={[styles.brandText, { color: theme.primary }]}>KINDRED</Text>
             </View>
 
             {/* Right: Notifications */}
