@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
@@ -76,11 +76,12 @@ const NotificationItem = ({ icon: Icon, title, desc, time }: any) => {
     );
 };
 
-const QuickActionButton = ({ icon: Icon, label, delay, hasBorder }: any) => {
+const QuickActionButton = ({ icon: Icon, label, delay, hasBorder, onPress }: any) => {
     const theme = useAppTheme();
     return (
         <Animated.View entering={FadeInDown.delay(delay).duration(400)} style={styles.actionContainer}>
             <Pressable
+                onPress={onPress}
                 style={[
                     styles.actionBtn,
                     {
@@ -99,7 +100,7 @@ const QuickActionButton = ({ icon: Icon, label, delay, hasBorder }: any) => {
                     style={StyleSheet.absoluteFill}
                 />
                 <View style={{ zIndex: 10 }}>
-                    <Icon size={24} color={theme.textPrimary} />
+                    <Icon size={24} color={hasBorder ? theme.primary : theme.textPrimary} />
                 </View>
             </Pressable>
             <Text style={[styles.actionBtnLabel, { color: theme.textSecondary }]}>{label}</Text>
@@ -124,10 +125,123 @@ export default function RebornDashboard() {
     const loadMemory = useAgentStore.use.loadMemory();
     const refreshPortfolio = useAgentStore.use.refreshPortfolio();
 
+    const [selectedAction, setSelectedAction] = React.useState<string | null>(null);
+    const [modalVisible, setModalVisible] = React.useState(false);
+    const [amount, setAmount] = React.useState('');
+    const [selectedToken, setSelectedToken] = React.useState('USDC');
+
     React.useEffect(() => {
         loadMemory();
         if (address) refreshPortfolio(address);
     }, [address]);
+
+    const handleAction = (label: string) => {
+        setSelectedAction(label);
+        setAmount('');
+        setModalVisible(true);
+    };
+
+    const renderModalBody = () => {
+        const tokens = ['USDC', 'USDT', 'FLOW', 'ETH', 'BTC'];
+
+        if (selectedAction === 'Add Cash' || selectedAction === 'Withdraw') {
+            return (
+                <View style={styles.modalBodyInner}>
+                    <Text style={[styles.inputLabel, { color: theme.textMuted }]}>Enter Amount</Text>
+                    <View style={[styles.glassInputContainer, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+                        <TextInput
+                            style={[styles.glassInput, { color: theme.textPrimary }]}
+                            placeholder="0.00"
+                            placeholderTextColor={theme.textMuted}
+                            keyboardType="numeric"
+                            value={amount}
+                            onChangeText={setAmount}
+                        />
+                        <View style={styles.inputCurrency}>
+                            <Text style={{ color: theme.textPrimary, fontWeight: '700' }}>USD</Text>
+                        </View>
+                    </View>
+
+                    <Text style={[styles.inputLabel, { color: theme.textMuted, marginTop: 20 }]}>Select Asset</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tokenRow}>
+                        {tokens.map(t => (
+                            <Pressable
+                                key={t}
+                                onPress={() => setSelectedToken(t)}
+                                style={[
+                                    styles.tokenChip,
+                                    { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' },
+                                    selectedToken === t && { backgroundColor: theme.primary + '20', borderColor: theme.primary }
+                                ]}
+                            >
+                                <Text style={[styles.tokenChipText, { color: selectedToken === t ? theme.primary : theme.textSecondary }]}>{t}</Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+
+                    {selectedAction === 'Withdraw' && parseFloat(amount) > 42840 && (
+                        <Animated.View entering={FadeIn.duration(400)} style={styles.errorContainer}>
+                            <Text style={[styles.errorText, { color: theme.negative }]}>Insufficient balance. Limit: $42,840.50</Text>
+                        </Animated.View>
+                    )}
+                </View>
+            );
+        }
+
+        if (selectedAction === 'Exchange') {
+            return (
+                <View style={styles.modalBodyInner}>
+                    <View style={styles.swapRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.inputLabel, { color: theme.textMuted }]}>From</Text>
+                            <View style={[styles.glassInputSmall, { borderColor: theme.border }]}>
+                                <Text style={{ color: theme.textPrimary, fontWeight: '700' }}>USDC</Text>
+                            </View>
+                        </View>
+                        <View style={styles.swapIcon}>
+                            <Sliders size={16} color={theme.textMuted} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.inputLabel, { color: theme.textMuted }]}>To</Text>
+                            <View style={[styles.glassInputSmall, { backgroundColor: theme.primary + '10', borderColor: theme.primary }]}>
+                                <Text style={{ color: theme.primary, fontWeight: '700' }}>FLOW</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[styles.glassInputContainer, { marginTop: 16, borderColor: theme.border }]}>
+                        <TextInput
+                            style={[styles.glassInput, { color: theme.textPrimary }]}
+                            placeholder="0.00"
+                            placeholderTextColor={theme.textMuted}
+                            keyboardType="numeric"
+                            value={amount}
+                            onChangeText={setAmount}
+                        />
+                    </View>
+                </View>
+            );
+        }
+
+        if (selectedAction === 'Pause AI') {
+            return (
+                <View style={styles.modalBodyInner}>
+                    <View style={[styles.warningBox, { backgroundColor: theme.negative + '10', borderColor: theme.negative + '30' }]}>
+                        <Activity size={32} color={theme.negative} style={{ marginBottom: 12 }} />
+                        <Text style={[styles.warningTitle, { color: theme.negative }]}>System Critical Warning</Text>
+                        <Text style={[styles.warningDesc, { color: theme.textSecondary }]}>
+                            Pausing the KINDRED Wealth Engine will disable active yields, real-time rebalancing, and FHE privacy guardrails.
+                            Your projected loss over the next 30 days is <Text style={{ fontWeight: '700', color: theme.negative }}>$1,840.22</Text>.
+                        </Text>
+                    </View>
+                    <Text style={[styles.confirmInstruction, { color: theme.textMuted }]}>
+                        All active Smart Contracts will be placed in 'Self-Sovereign' cold state.
+                    </Text>
+                </View>
+            );
+        }
+
+        return null;
+    };
 
     return (
         <View style={[styles.root, { backgroundColor: theme.bg }]}>
@@ -189,11 +303,59 @@ export default function RebornDashboard() {
                     <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Quick Action</Text>
                 </View>
                 <View style={styles.actionGrid}>
-                    <QuickActionButton icon={Plus} label="Add Cash" delay={100} />
-                    <QuickActionButton icon={ArrowDownLeft} label="Exchange" delay={200} />
-                    <QuickActionButton icon={ArrowUpRight} label="Withdraw" delay={300} />
-                    <QuickActionButton icon={Pause} label="Pause AI" delay={400} hasBorder />
+                    <QuickActionButton icon={Plus} label="Add Cash" delay={100} onPress={() => handleAction('Add Cash')} />
+                    <QuickActionButton icon={ArrowDownLeft} label="Exchange" delay={200} onPress={() => handleAction('Exchange')} />
+                    <QuickActionButton icon={ArrowUpRight} label="Withdraw" delay={300} onPress={() => handleAction('Withdraw')} />
+                    <QuickActionButton icon={Pause} label="Pause AI" delay={400} hasBorder onPress={() => handleAction('Pause AI')} />
                 </View>
+
+                {/* Quick Action Modal */}
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <Pressable
+                        style={styles.modalOverlay}
+                        onPress={() => setModalVisible(false)}
+                    >
+                        <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <Animated.View
+                            entering={FadeIn.duration(300)}
+                            style={[
+                                styles.modalContent,
+                                {
+                                    backgroundColor: theme.isDark ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.85)',
+                                    borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                                }
+                            ]}
+                        >
+                            <BlurView intensity={Platform.OS === 'web' ? 40 : 60} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                            <View style={[styles.modalHeader, { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                                <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{selectedAction}</Text>
+                                <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseBtn}>
+                                    <Text style={{ color: theme.primary, fontWeight: '700' }}>Done</Text>
+                                </Pressable>
+                            </View>
+                            <View style={styles.modalBody}>
+                                {renderModalBody()}
+
+                                <Pressable
+                                    onPress={() => setModalVisible(false)}
+                                    style={[
+                                        styles.modalActionBtn,
+                                        { backgroundColor: selectedAction === 'Pause AI' ? theme.negative : theme.primary }
+                                    ]}
+                                >
+                                    <Text style={[styles.modalActionBtnText, { color: theme.white || '#fff' }]}>
+                                        {selectedAction === 'Pause AI' ? 'Confirm System Halt' : `Confirm ${selectedAction}`}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        </Animated.View>
+                    </Pressable>
+                </Modal>
 
                 {/* Historical Growth */}
                 <View style={styles.sectionHeader}>
@@ -304,4 +466,95 @@ const styles = StyleSheet.create({
     notifTitle: { fontSize: 13, fontWeight: '700' },
     notifTime: { fontSize: 10, marginTop: 1 },
     notifDesc: { fontSize: 12, lineHeight: 16, paddingLeft: 44 },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    modalContent: {
+        width: '85%',
+        maxWidth: 400,
+        borderRadius: 32,
+        overflow: 'hidden',
+        borderWidth: 1,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40 },
+            web: { boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }
+        })
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 24,
+        borderBottomWidth: 1,
+        zIndex: 10,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: '800',
+    },
+    modalCloseBtn: {
+        padding: 8,
+    },
+    modalBody: {
+        padding: 24,
+        zIndex: 10,
+    },
+    placeholderBox: {
+        padding: 20,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        marginBottom: 24,
+    },
+    placeholderText: {
+        fontSize: 14,
+        lineHeight: 22,
+        textAlign: 'center',
+        fontWeight: '500',
+    },
+    modalActionBtn: {
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+            web: { boxShadow: '0 4px 12px rgba(255, 123, 26, 0.3)' }
+        })
+    },
+    modalActionBtnText: {
+        fontSize: 16,
+        fontWeight: '700',
+    },
+
+    // Detailed Modal Content Styles
+    modalBodyInner: { marginBottom: 32 },
+    inputLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+    glassInputContainer: {
+        flexDirection: 'row', alignItems: 'center',
+        height: 64, borderRadius: 20, borderWidth: 1, paddingHorizontal: 20,
+        backgroundColor: 'rgba(0,0,0,0.02)',
+    },
+    glassInput: { flex: 1, fontSize: 24, fontWeight: '800' },
+    inputCurrency: { paddingLeft: 12, borderLeftWidth: 1, borderLeftColor: 'rgba(0,0,0,0.05)' },
+    tokenRow: { marginTop: 12 },
+    tokenChip: {
+        paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12,
+        borderWidth: 1, marginRight: 8, height: 44, justifyContent: 'center'
+    },
+    tokenChipText: { fontSize: 13, fontWeight: '700' },
+    errorContainer: { marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: 'rgba(255,0,0,0.05)' },
+    errorText: { fontSize: 13, fontWeight: '600' },
+    swapRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
+    glassInputSmall: { height: 48, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    swapIcon: { width: 40, height: 48, alignItems: 'center', justifyContent: 'center' },
+    warningBox: { padding: 24, borderRadius: 24, borderWidth: 1, alignItems: 'center' },
+    warningTitle: { fontSize: 18, fontWeight: '800', marginBottom: 8 },
+    warningDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, fontWeight: '500' },
+    confirmInstruction: { fontSize: 12, textAlign: 'center', marginTop: 24, fontWeight: '500' },
 });

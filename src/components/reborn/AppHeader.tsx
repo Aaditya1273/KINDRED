@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
-import { Bell } from 'lucide-react-native';
+import { Bell, User } from 'lucide-react-native';
 import { useAppTheme } from '@/theme/tokens';
 
 export const AppHeader = () => {
@@ -15,8 +15,10 @@ export const AppHeader = () => {
                     onPress={() => router.push('/portfolio')}
                     style={[styles.profileCircle, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}
                 >
-                    <BlurView intensity={Platform.OS === 'web' ? 10 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                    <View style={{ width: '100%', height: '100%', backgroundColor: theme.primary + '20' }} />
+                    <BlurView intensity={Platform.OS === 'web' ? 8 : 15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <View style={{ width: '100%', height: '100%', backgroundColor: theme.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
+                        <User size={20} color={theme.primary} />
+                    </View>
                 </Pressable>
             </View>
 
@@ -30,7 +32,7 @@ export const AppHeader = () => {
                 <Pressable
                     style={[styles.controlBtn, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}
                 >
-                    <BlurView intensity={Platform.OS === 'web' ? 15 : 25} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <BlurView intensity={Platform.OS === 'web' ? 8 : 15} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                     <Bell size={20} color={theme.textPrimary} />
                 </Pressable>
             </View>
