@@ -1,0 +1,43 @@
+[
+    {
+        "timestamp": "2026-03-28T08:25:12Z",
+        "action": "BLIND_FINANCIAL_ANALYSIS",
+        "status": "SUCCESS",
+        "agent_id": "kindred-alpha-001",
+        "details": {
+            "method": "Zama FHE",
+            "ciphertext_hash": "0x5d2e...a4f1",
+            "insight": "Savings potential identified: $300 in Entertainment spend."
+        },
+        "proof": {
+            "type": "FHE_Computation_Receipt",
+            "standard": "ERC-8004",
+            "provider": "Zama"
+        }
+    },
+    {
+        "timestamp": "2026-03-28T08:10:22Z",
+        "action": "AUTO_YIELD_OPTIMIZATION",
+        "status": "SUCCESS",
+        "agent_id": "kindred-alpha-001",
+        "details": {
+            "amount": "500.0",
+            "vault": "idleVault -> yieldVault",
+            "strategy_cid": "bafybeigcl2p6shlxqy2b6l5i... (Storacha Log)",
+            "tx_hash": "6ed857019e89455d6746e6d9d68b20773d0133541bff882618fd869ed8e89e9a"
+        },
+        "proof": {
+            "type": "OnChainReceipt",
+            "event": "YieldOptimized",
+            "contract": "0xaf83ba759d6fff9e.KindredAgentVault"
+        }
+    },
+    {
+        "timestamp": "2026-03-28T05:00:00Z",
+        "action": "MARKET_SCAN",
+        "status": "COMPLETED",
+        "details": {
+            "insight": "Flow/USDC pair yield increased to 12.4% on native pools. Recommendation: Move 25% of idle liquidity."
+        }
+    }
+]

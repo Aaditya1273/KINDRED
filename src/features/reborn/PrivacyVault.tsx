@@ -1,23 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal, ActivityIndicator } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
 import { AppHeader } from '@/components/reborn/AppHeader';
-import { Lock, EyeOff, ShieldCheck, Database, Zap, ChevronRight, Fingerprint, Activity as ActivityIcon } from 'lucide-react-native';
-import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import { Lock, EyeOff, ShieldCheck, Database, Zap, ChevronRight, Fingerprint, Activity as ActivityIcon, Sparkles } from 'lucide-react-native';
+import Animated, { FadeInDown, FadeInRight, FadeIn, FadeOut } from 'react-native-reanimated';
 import { router } from 'expo-router';
+import { confidentialService, FinancialInsight } from '@/lib/zama/ConfidentialService';
 
-const INSIGHTS = [
+const INITIAL_INSIGHTS = [
     { text: "You overspend on subscriptions (₹1,200/month)", detail: "Detected 4 active auto-renewals." },
-    { text: "Unusual utility spike detected", detail: "Electricity bill +40% vs last month average." },
-    { text: "Savings potential: ₹5,000", detail: "Unused balance in low-yield account." }
 ];
 
 export default function PrivacyVault() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
     const [revokeVisible, setRevokeVisible] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisStep, setAnalysisStep] = useState<'idle' | 'encrypting' | 'analyzing' | 'done'>('idle');
+    const [dynamicInsight, setDynamicInsight] = useState<FinancialInsight | null>(null);
+
+    const runAnalysis = async () => {
+        setIsAnalyzing(true);
+        setAnalysisStep('encrypting');
+
+        // 1. Encrypt raw data context (Simulated TFHE)
+        const context = await confidentialService.encryptFinancialContext(4500.0);
+
+        setAnalysisStep('analyzing');
+
+        // 2. Perform Blind Analysis on Ciphertext
+        const insight = await confidentialService.blindAnalyze(context);
+
+        setDynamicInsight(insight);
+        setAnalysisStep('done');
+        setIsAnalyzing(false);
+    };
 
     return (
         <View style={[styles.root, { backgroundColor: theme.bg }]}>
@@ -37,14 +56,60 @@ export default function PrivacyVault() {
                 </View>
 
                 <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-                    KINDRED processes your most sensitive data while it's encrypted. I provide insights without ever seeing the raw numbers.
+                    KINDRED processes your most sensitive data while it's encrypted (Zama FHE). I provide Alpha without ever seeing your raw numbers.
                 </Text>
 
-                {/* Blind AI Insights */}
-                <View style={styles.sectionHeader}>
+                {/* Blind AI Insights Section */}
+                <View style={styles.sectionHeaderRow}>
                     <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Blind AI Insights</Text>
+                    {analysisStep !== 'done' && (
+                        <Pressable
+                            disabled={isAnalyzing}
+                            onPress={runAnalysis}
+                            style={[styles.runBtn, { backgroundColor: theme.primary + '10' }]}
+                        >
+                            <Sparkles size={14} color={theme.primary} />
+                            <Text style={[styles.runBtnText, { color: theme.primary }]}>
+                                {isAnalyzing ? 'Processing...' : 'Run Blind Analysis'}
+                            </Text>
+                        </Pressable>
+                    )}
                 </View>
-                {INSIGHTS.map((item, idx) => (
+
+                {isAnalyzing && (
+                    <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.loaderContainer}>
+                        <ActivityIndicator color={theme.primary} />
+                        <Text style={[styles.loaderText, { color: theme.textSecondary }]}>
+                            {analysisStep === 'encrypting' ? 'Encrypting via TFHE-rs...' : 'Performing Blind Analysis on Ciphertext...'}
+                        </Text>
+                    </Animated.View>
+                )}
+
+                {dynamicInsight && (
+                    <Animated.View
+                        entering={FadeInDown}
+                        style={[styles.insightCard, { borderColor: theme.primary, borderWidth: 1.5 }]}
+                    >
+                        <BlurView intensity={20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={styles.insightInner}>
+                            <View style={styles.insightHeader}>
+                                <ShieldCheck size={18} color={theme.primary} />
+                                <Text style={[styles.insightText, { color: theme.textPrimary }]}>Confidential Alpha Found</Text>
+                            </View>
+                            <Text style={[styles.insightDetail, { color: theme.textPrimary, fontWeight: '600' }]}>
+                                {dynamicInsight.recommendation}
+                            </Text>
+                            <View style={styles.metaRow}>
+                                <Text style={[styles.metaText, { color: theme.textMuted }]}>Ref: {dynamicInsight.encrypted_total_referenced}</Text>
+                                <Pressable onPress={() => router.push('/yield')} style={styles.actionLink}>
+                                    <Text style={{ color: theme.primary, fontWeight: '700' }}>Finalize on Flow</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </Animated.View>
+                )}
+
+                {INITIAL_INSIGHTS.map((item, idx) => (
                     <Animated.View
                         key={idx}
                         entering={FadeInRight.delay(idx * 100).duration(400)}
@@ -84,7 +149,7 @@ export default function PrivacyVault() {
                             label="Spending History"
                             status="Processing in FHE"
                             color={theme.primary}
-                            onPress={() => router.push('/activity')}
+                            onPress={() => router.push('/reborn/Dashboard')}
                         />
                         <VaultItem
                             icon={Fingerprint}
@@ -147,33 +212,14 @@ export default function PrivacyVault() {
 const VaultItem = ({ icon: Icon, label, status, color, isLast, onPress }: any) => {
     const theme = useAppTheme();
 
-    if (onPress) {
-        return (
-            <Pressable
-                onPress={onPress}
-                style={({ pressed }) => [
-                    styles.vaultItem,
-                    !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 },
-                    pressed && { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
-                ]}
-            >
-                <View style={[styles.iconBox, { backgroundColor: color + '15' }]}>
-                    <Icon size={18} color={color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={[styles.vaultLabel, { color: theme.textPrimary }]}>{label}</Text>
-                    <Text style={[styles.vaultStatus, { color: theme.textSecondary }]}>{status}</Text>
-                </View>
-                <ChevronRight size={16} color={theme.textMuted} />
-            </Pressable>
-        );
-    }
-
     return (
-        <View
-            style={[
+        <Pressable
+            disabled={!onPress}
+            onPress={onPress}
+            style={({ pressed }) => [
                 styles.vaultItem,
-                !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 }
+                !isLast && { borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderBottomWidth: 1 },
+                pressed && onPress && { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
             ]}
         >
             <View style={[styles.iconBox, { backgroundColor: color + '15' }]}>
@@ -183,8 +229,8 @@ const VaultItem = ({ icon: Icon, label, status, color, isLast, onPress }: any) =
                 <Text style={[styles.vaultLabel, { color: theme.textPrimary }]}>{label}</Text>
                 <Text style={[styles.vaultStatus, { color: theme.textSecondary }]}>{status}</Text>
             </View>
-            <Lock size={14} color={theme.textMuted} opacity={0.5} />
-        </View>
+            {onPress ? <ChevronRight size={16} color={theme.textMuted} /> : <Lock size={14} color={theme.textMuted} opacity={0.5} />}
+        </Pressable>
     );
 };
 
@@ -198,6 +244,7 @@ const styles = StyleSheet.create({
     subtitle: { fontSize: 15, lineHeight: 22, marginBottom: 32 },
 
     sectionHeader: { marginBottom: 16 },
+    sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
     sectionTitle: { fontSize: 18, fontWeight: '800' },
 
     insightCard: { borderRadius: 24, marginBottom: 12, borderWidth: 1, overflow: 'hidden' },
@@ -216,30 +263,29 @@ const styles = StyleSheet.create({
     controlBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 18, borderRadius: 20, marginTop: 10 },
     controlBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 
-    // Modal Styles
+    runBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+    runBtnText: { fontSize: 12, fontWeight: '700' },
+
+    loaderContainer: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 16, marginBottom: 16 },
+    loaderText: { fontSize: 13, fontWeight: '500' },
+
+    metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', paddingTop: 12 },
+    metaText: { fontSize: 11, fontStyle: 'italic' },
+    actionLink: { padding: 4 },
+
     modalOverlay: {
         flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)',
     },
     modalContent: {
         width: '85%', maxWidth: 400, borderRadius: 32, overflow: 'hidden', borderWidth: 1,
-        ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40 },
-            web: { boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }
-        })
     },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, zIndex: 10 },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1 },
     modalTitle: { fontSize: 20, fontWeight: '800' },
     modalCloseBtn: { padding: 8 },
-    modalBody: { padding: 24, zIndex: 10 },
-    vaultDetailBox: { alignItems: 'center', padding: 16 },
+    modalBody: { padding: 24 },
     vaultDetailText: { fontSize: 14, lineHeight: 22, textAlign: 'center', fontWeight: '500' },
-    vaultStatusHighlight: { fontSize: 13, fontWeight: '700', marginTop: 16 },
     modalActionBtn: {
         height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center',
-        ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
-            web: { boxShadow: '0 4px 12px rgba(255, 60, 60, 0.3)' }
-        })
     },
     modalActionBtnText: { fontSize: 16, fontWeight: '700' }
 });

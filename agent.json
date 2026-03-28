@@ -1,0 +1,35 @@
+{
+    "agent_id": "kindred-alpha-001",
+    "name": "KINDRED Sovereign",
+    "standard": "ERC-8004",
+    "owner": "0xaf83ba759d6fff9e",
+    "identity": {
+        "type": "AutonomousWealthManager",
+        "version": "1.0.0",
+        "description": "KINDRED is a personal hedge fund agent designed for trustless wealth growth via Flow and multi-chain DeFi loops."
+    },
+    "capabilities": [
+        {
+            "task": "Auto-Yield Optimization",
+            "tool": "KindredAgentVault.optimizeYield",
+            "network": "Flow Testnet",
+            "description": "Automatically moves idle assets into high-yield vaults based on real-time market slippage and performance data."
+        },
+        {
+            "task": "Scheduled Savings",
+            "tool": "KindredAgentVault.scheduledDeposit",
+            "description": "Executes recurring dollar-cost averaging into optimized liquidity pools."
+        }
+    ],
+    "guardrails": {
+        "max_slippage": "0.5%",
+        "max_transaction_value": "1000 FLOW",
+        "restricted_contracts": [],
+        "emergency_pause_enabled": true
+    },
+    "registries": {
+        "identity": "erc8004://registry.kindred.io/identity/kindred-alpha-001",
+        "reputation": "erc8004://registry.kindred.io/reputation/kindred-alpha-001",
+        "validation": "erc8004://registry.kindred.io/validation/kindred-alpha-001"
+    }
+}
