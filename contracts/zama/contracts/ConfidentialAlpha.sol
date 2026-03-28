@@ -17,14 +17,14 @@ contract ConfidentialAlpha {
     }
 
     // Set an encrypted spending goal from the user
-    function setSpendingGoal(bytes calldata encryptedAmount) public {
-        encryptedSpendingGoal = TFHE.asEuint32(encryptedAmount);
+    function setSpendingGoal(einput inputHandle, bytes calldata inputProof) public {
+        encryptedSpendingGoal = TFHE.asEuint32(inputHandle, inputProof);
     }
 
     // Perform a confidential yield analysis
     // It compares encrypted user data against encrypted market data
-    function computeConfidentialAlpha(bytes calldata encryptedMarketRate) public view returns (ebool) {
-        euint32 marketRate = TFHE.asEuint32(encryptedMarketRate);
+    function computeConfidentialAlpha(einput inputHandle, bytes calldata inputProof) public returns (ebool) {
+        euint32 marketRate = TFHE.asEuint32(inputHandle, inputProof);
         
         // Logic: Is the market yield higher than the target threshold?
         // This calculation happens entirely on encrypted data!

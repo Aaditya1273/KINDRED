@@ -1,4 +1,122 @@
 {
   "_format": "hh-sol-cache-2",
-  "files": {}
+  "files": {
+    "/home/bajrangi/Wins/KINDRED/contracts/zama/contracts/ConfidentialAlpha.sol": {
+      "lastModificationDate": 1774667439001,
+      "contentHash": "4e0b4d7ecbaa5b044d7be16a27223acd",
+      "sourceName": "contracts/ConfidentialAlpha.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "fhevm/lib/TFHE.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ConfidentialAlpha"
+      ]
+    },
+    "/home/bajrangi/Wins/KINDRED/contracts/zama/node_modules/fhevm/lib/TFHE.sol": {
+      "lastModificationDate": 1774666717253,
+      "contentHash": "5e1b4ee3a4cc167d6f59a3e72db2a7f9",
+      "sourceName": "fhevm/lib/TFHE.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./Impl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "Common",
+        "TFHE"
+      ]
+    },
+    "/home/bajrangi/Wins/KINDRED/contracts/zama/node_modules/fhevm/lib/Impl.sol": {
+      "lastModificationDate": 1774666717090,
+      "contentHash": "93d7e3908104c93e0038c718f41d7c54",
+      "sourceName": "fhevm/lib/Impl.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./TFHE.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "IACL",
+        "ITFHEExecutor",
+        "Impl"
+      ]
+    }
+  }
 }
