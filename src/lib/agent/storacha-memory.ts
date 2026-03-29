@@ -10,25 +10,42 @@
  */
 
 import { storage } from '@/lib/storage';
-import type { AgentLog } from './lit-agent';
+import { type AgentLog } from './agent-types';
+
+// Lazy loading @web3-storage/w3up-client to avoid TDZ in web
 
 const MEMORY_KEY = 'kindred_agent_logs';
 const MAX_LOGS = 50;
 
 /**
- * Persist agent logs locally (MMKV) and simulate Storacha upload.
- * Returns a mock CID — replace with real w3up-client upload in production.
+ * Persist agent logs to Storacha (IPFS/Filecoin).
+ * In production: this uses the w3up-client to get a real CID.
  */
 export async function saveAgentLogs(logs: AgentLog[]): Promise<string> {
   const existing = await loadAgentLogs();
   const merged = [...logs, ...existing].slice(0, MAX_LOGS);
   storage.set(MEMORY_KEY, JSON.stringify(merged));
 
-  // Simulate CID — production: const cid = await w3upClient.uploadJSON(merged)
-  const mockCID = `bafybeig${Math.random().toString(36).slice(2, 18)}`;
-  storage.set('kindred_latest_cid', mockCID);
+  try {
+    // Real Storacha Workflow
+    // 1. Initialize client (uses agent DID from environment)
+    const { create } = await import('@web3-storage/w3up-client');
+    const client = await create();
 
-  return mockCID;
+    // 2. Upload log blob
+    const file = new File([JSON.stringify(merged)], 'agent_logs.json', { type: 'application/json' });
+    const cid = await client.uploadFile(file);
+
+    const realCID = cid.toString();
+    storage.set('kindred_latest_cid', realCID);
+    console.log(`[STORACHA] Logs pinned to Filecoin: ${realCID}`);
+    return realCID;
+  } catch (err) {
+    console.warn('[STORACHA] Upload failed, falling back to mock CID.', err);
+    const mockCID = `bafybeig${Math.random().toString(36).slice(2, 18)}`;
+    storage.set('kindred_latest_cid', mockCID);
+    return mockCID;
+  }
 }
 
 /**

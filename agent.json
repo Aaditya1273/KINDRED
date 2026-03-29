@@ -2,10 +2,11 @@
     "agent_id": "kindred-alpha-001",
     "name": "KINDRED Sovereign",
     "standard": "ERC-8004",
+    "version": "1.1.0",
     "owner": "0xaf83ba759d6fff9e",
+    "registry_address": "0xaf83ba759d6fff9e",
     "identity": {
         "type": "AutonomousWealthManager",
-        "version": "1.0.0",
         "description": "KINDRED is a personal hedge fund agent designed for trustless wealth growth via Flow and multi-chain DeFi loops."
     },
     "capabilities": [
@@ -24,12 +25,15 @@
     "guardrails": {
         "max_slippage": "0.5%",
         "max_transaction_value": "1000 FLOW",
-        "restricted_contracts": [],
         "emergency_pause_enabled": true
     },
     "registries": {
-        "identity": "erc8004://registry.kindred.io/identity/kindred-alpha-001",
-        "reputation": "erc8004://registry.kindred.io/reputation/kindred-alpha-001",
-        "validation": "erc8004://registry.kindred.io/validation/kindred-alpha-001"
+        "identity": "cadence://af83ba759d6fff9e.KindredAgentRegistry/getAgent/kindred-alpha-001",
+        "reputation": "erc8004://registry.kindred.io/reputation/kindred-alpha-001"
+    },
+    "proof": {
+        "type": "OwnershipSignature",
+        "signature": "PLACEHOLDER_OWNER_SIGNATURE",
+        "signed_at": "2026-03-28T18:42:00Z"
     }
 }

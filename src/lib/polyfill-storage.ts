@@ -19,7 +19,22 @@ const isLocalStorageAvailable = () => {
     }
 };
 
+const isSessionStorageAvailable = () => {
+    if (!isWeb) return true;
+    try {
+        const storage = window.sessionStorage;
+        if (!storage) return false;
+        const testKey = '__session_test__';
+        storage.setItem(testKey, testKey);
+        storage.removeItem(testKey);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
 const hasStorage = isLocalStorageAvailable();
+const hasSessionStorage = isSessionStorageAvailable();
 
 // 1. Global localStorage Polyfill
 if (isWeb && !hasStorage) {
@@ -49,7 +64,33 @@ if (isWeb && !hasStorage) {
     }
 }
 
-// 2. Comprehensive MMKV Mock for Web
+// 1b. Global sessionStorage Polyfill
+const sessionMemory = new Map<string, string>();
+if (isWeb && !hasSessionStorage) {
+    console.log('[Polyfill] sessionStorage is restricted. Using memory fallback.');
+    try {
+        const mockSession = {
+            getItem: (key: string) => sessionMemory.get(key) || null,
+            setItem: (key: string, value: string) => sessionMemory.set(key, value),
+            removeItem: (key: string) => sessionMemory.delete(key),
+            clear: () => sessionMemory.clear(),
+            key: (i: number) => Array.from(sessionMemory.keys())[i] || null,
+            get length() { return sessionMemory.size; }
+        };
+        Object.defineProperty(window, 'sessionStorage', {
+            value: mockSession,
+            writable: true,
+            configurable: true
+        });
+    } catch (e) {
+        (window as any).sessionStorage = {
+            getItem: (key: string) => sessionMemory.get(key) || null,
+            setItem: (key: string, value: string) => sessionMemory.set(key, value),
+            removeItem: (key: string) => sessionMemory.delete(key),
+            clear: () => sessionMemory.clear(),
+        };
+    }
+}
 // This ensures that hooks like useMMKVBoolean don't crash with "getBoolean is not a function"
 export class MMKVMock {
     private storage: Map<string, any>;

@@ -38,12 +38,36 @@ export async function fetchTransactions(address: string): Promise<Transaction[]>
     }
   }
 
-  // Production: replace with real Flowscan API call
-  // const res = await fetch(`https://evm.flowscan.io/api?module=account&action=txlist&address=${address}`)
-  const txs = generateMockTransactions(address);
+  try {
+    // Flow EVM Testnet Explorer API
+    const url = `https://evm-testnet.flowscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=latest&sort=desc`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
 
-  storage.set(TX_CACHE_KEY, JSON.stringify({ address, txs, ts: Date.now() }));
-  return txs;
+    if (!res.ok) throw new Error('Flowscan API Unavailable');
+
+    const data = await res.json();
+    if (data.status !== '1') throw new Error(data.message || 'API Error');
+
+    const txs: Transaction[] = data.result.map((tx: any) => ({
+      hash: tx.hash,
+      type: tx.to?.toLowerCase() === address.toLowerCase() ? 'DEPOSIT' : 'AGENT',
+      asset: 'FLOW', // Default for native txs
+      amount: parseFloat(tx.value) / 1e18,
+      usdValue: (parseFloat(tx.value) / 1e18) * 0.72,
+      status: tx.isError === '0' ? 'confirmed' : 'failed',
+      timestamp: parseInt(tx.timeStamp) * 1000,
+      from: tx.from,
+      to: tx.to,
+      blockNumber: parseInt(tx.blockNumber),
+    }));
+
+    storage.set(TX_CACHE_KEY, JSON.stringify({ address, txs, ts: Date.now() }));
+    return txs;
+  } catch (err) {
+    console.error('[TRANSACTIONS] Real fetch failed, returning empty:', err);
+    // If no real history yet, we return empty instead of faking it.
+    return [];
+  }
 }
 
 /**
@@ -57,26 +81,4 @@ export function appendAgentTransaction(tx: Transaction): void {
   storage.set(TX_CACHE_KEY, JSON.stringify({ address: tx.from, txs: updated, ts: Date.now() }));
 }
 
-function generateMockTransactions(address: string): Transaction[] {
-  const seed = parseInt(address.slice(2, 8), 16);
-  const types: Transaction['type'][] = ['DEPOSIT', 'WITHDRAW', 'SWAP', 'YIELD', 'AGENT'];
-  const assets = ['ETH', 'USDC', 'FLOW', 'BTC'];
-
-  return Array.from({ length: 12 }, (_, i) => {
-    const type = types[(seed + i) % types.length];
-    const asset = assets[(seed + i) % assets.length];
-    const amount = parseFloat(((seed % 10 + i * 0.3) * 0.1).toFixed(4));
-    return {
-      hash: `0x${(seed + i).toString(16).padStart(40, '0')}`,
-      type,
-      asset,
-      amount,
-      usdValue: amount * (asset === 'ETH' ? 3420 : asset === 'BTC' ? 67500 : asset === 'FLOW' ? 0.72 : 1),
-      status: i === 0 ? 'pending' : 'confirmed',
-      timestamp: Date.now() - i * 3_600_000,
-      from: address,
-      to: `0x${(seed * 2 + i).toString(16).padStart(40, '0')}`,
-      blockNumber: 18_000_000 - i * 10,
-    };
-  });
-}
+// Helper removed: We don't use mock generators in production.

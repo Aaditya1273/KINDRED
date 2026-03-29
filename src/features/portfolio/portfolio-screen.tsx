@@ -10,6 +10,7 @@ import {
     Pressable,
     Platform,
     Modal,
+    Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { AppHeader } from '@/components/reborn/AppHeader';
@@ -32,6 +33,21 @@ const ASSET_ROLES: Record<string, string> = {
     BTC: 'Store of Value',
     USDC: 'Stability',
     FLOW: 'Smart Cash Engine',
+};
+
+// Import custom coin assets
+const BTC_LOGO = require('../../coins/btc.png');
+const ETH_LOGO = require('../../coins/eth.png');
+const FLOW_LOGO = require('../../coins/flow.png');
+const USDC_LOGO = require('../../coins/usdc.png');
+const USDT_LOGO = require('../../coins/usdt.png');
+
+const COIN_LOGOS: Record<string, any> = {
+    BTC: BTC_LOGO,
+    ETH: ETH_LOGO,
+    FLOW: FLOW_LOGO,
+    USDC: USDC_LOGO,
+    USDT: USDT_LOGO,
 };
 
 // Minimal donut chart using SVG
@@ -95,10 +111,8 @@ function AssetRow({ token, isLast }: { token: TokenBalance; isLast?: boolean }) 
     return (
         <Animated.View entering={FadeInDown.duration(300)}>
             <View style={[styles.assetRow, !isLast && { borderBottomWidth: 1, borderBottomColor: theme.border }]}>
-                <View style={[styles.assetIcon, { backgroundColor: token.color + '18' }]}>
-                    <Text style={[styles.assetIconText, { color: token.color }]}>
-                        {token.symbol.slice(0, 2)}
-                    </Text>
+                <View style={[styles.assetIcon, { backgroundColor: 'transparent' }]}>
+                    <Image source={COIN_LOGOS[token.symbol]} style={{ width: '100%', height: '100%', resizeMode: 'contain' }} />
                 </View>
                 <View style={styles.assetInfo}>
                     <Text style={[styles.assetName, { color: theme.textPrimary }]}>{token.name}</Text>
@@ -121,6 +135,7 @@ export function PortfolioScreen() {
     const { address } = useAccount();
     const portfolio = useAgentStore.use.portfolio();
     const refreshPortfolio = useAgentStore.use.refreshPortfolio();
+    const isWorldIDVerified = useAgentStore.use.isWorldIDVerified();
     const { selectedTheme, setSelectedTheme } = useSelectedTheme();
     const [refreshing, setRefreshing] = React.useState(false);
 
@@ -177,8 +192,9 @@ export function PortfolioScreen() {
                 <SettingItem
                     icon={Fingerprint}
                     label="World ID Verification"
-                    value="Verified"
-                    color={theme.positive}
+                    value={isWorldIDVerified ? 'Verified' : 'Pending'}
+                    color={isWorldIDVerified ? theme.positive : theme.primary}
+                    onPress={() => router.push('/trust')}
                 />
                 <SettingItem
                     icon={Key}
@@ -189,7 +205,7 @@ export function PortfolioScreen() {
                 <SettingItem
                     icon={Mail}
                     label="Recovery Email"
-                    value="aaditya***@gmail.com"
+                    value="Secure Cloud"
                     isLast
                 />
             </View>

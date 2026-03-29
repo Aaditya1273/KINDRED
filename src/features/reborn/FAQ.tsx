@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
+import { useAgentStore } from '@/lib/agent/use-agent-store';
+import { format } from 'date-fns';
 import { AppHeader } from '@/components/reborn/AppHeader';
 import { HelpCircle, ChevronRight, MessageSquare, Search, BookOpen, ShieldCheck, CheckCircle } from 'lucide-react-native';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
@@ -33,12 +35,6 @@ const FAQ_DATA = [
         question: 'What is Smart Cash?',
         answer: 'Smart Cash refers to automated yield loops and scheduled savings on Flow, managed autonomously by your agent to beat market inflation.'
     }
-];
-
-const REASONING_LOGS = [
-    { action: 'Delta-Neutral Rebalance', reason: 'USDC/FLOW LP ratio drifted 3.2% from target. Rebalanced to protect capital.' },
-    { action: 'Slippage Guard', reason: 'Attempted swap on Flow, but slippage was too high (>0.5%), so the task was rescheduled for a lower volatility window.' },
-    { action: 'Optimized Savings', reason: 'Weekly auto-deposit of $200 USDC into Flow vault. Verified on-chain.' },
 ];
 
 const FAQItem = ({ item, index }: any) => {
@@ -74,6 +70,21 @@ const FAQItem = ({ item, index }: any) => {
 export default function RebornFAQ() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const logs = useAgentStore.use.logs();
+
+    const displayLogs = logs.length > 0 ? logs.slice(0, 5).map(log => ({
+        timestamp: format(log.timestamp, 'yyyy-MM-dd HH:mm:ss'),
+        action: log.action.toUpperCase(),
+        reasoning: log.message,
+        status: log.status
+    })) : [
+        {
+            timestamp: 'System Ready',
+            action: 'INITIALIZATION',
+            reasoning: 'Agent standing by for autonomous Flow/Zama cycles. No actions taken yet.',
+            status: 'Idle'
+        }
+    ];
 
     return (
         <ScrollView
@@ -96,19 +107,21 @@ export default function RebornFAQ() {
                 ))}
             </View>
 
-            {/* Migrated Reasoning Logs */}
             <Animated.View entering={FadeInDown.delay(400).duration(500)} style={[styles.logSection, { marginTop: 40 }]}>
                 <Text style={[styles.sectionTitleHeader, { color: theme.textPrimary }]}>Agent Verification Logs</Text>
                 <View style={[styles.logCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
                     <BlurView intensity={20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                     <View style={styles.logInner}>
-                        {REASONING_LOGS.map((log, i) => (
-                            <View key={i} style={[styles.logItem, { borderBottomColor: i === REASONING_LOGS.length - 1 ? 'transparent' : 'rgba(0,0,0,0.05)' }]}>
+                        {displayLogs.map((log, idx) => (
+                            <View key={idx} style={[styles.logRow, { borderLeftColor: log.status === 'Success' ? theme.positive : theme.primary }]}>
                                 <View style={styles.logHeader}>
-                                    <CheckCircle size={14} color={theme.positive} />
                                     <Text style={[styles.logAction, { color: theme.textPrimary }]}>{log.action}</Text>
+                                    <Text style={[styles.logTime, { color: theme.textMuted }]}>{log.timestamp}</Text>
                                 </View>
-                                <Text style={[styles.logReason, { color: theme.textSecondary }]}>{log.reason}</Text>
+                                <Text style={[styles.logReason, { color: theme.textSecondary }]}>{log.reasoning}</Text>
+                                <View style={[styles.statusTag, { backgroundColor: (log.status === 'Success' || log.status === 'Verified') ? theme.positive + '15' : theme.primary + '15' }]}>
+                                    <Text style={[styles.statusTagText, { color: (log.status === 'Success' || log.status === 'Verified') ? theme.positive : theme.primary }]}>{log.status}</Text>
+                                </View>
                             </View>
                         ))}
                     </View>
@@ -159,8 +172,11 @@ const styles = StyleSheet.create({
     sectionTitleHeader: { fontSize: 20, fontWeight: '800', marginBottom: 16 },
     logCard: { borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
     logInner: { padding: 0 },
-    logItem: { padding: 16, borderBottomWidth: 1 },
-    logHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-    logAction: { fontSize: 14, fontWeight: '700' },
-    logReason: { fontSize: 13, lineHeight: 18 }
+    logRow: { padding: 16, borderLeftWidth: 3, marginBottom: 12, backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 12 },
+    logHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    logAction: { fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+    logTime: { fontSize: 11, fontWeight: '500' },
+    logReason: { fontSize: 13, lineHeight: 18, marginBottom: 12 },
+    statusTag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+    statusTagText: { fontSize: 10, fontWeight: '800' }
 });

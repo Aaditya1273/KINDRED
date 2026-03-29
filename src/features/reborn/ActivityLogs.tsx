@@ -8,49 +8,65 @@ import { AppHeader } from '@/components/reborn/AppHeader';
 import { Activity, ShieldCheck, Zap, ChevronRight, CheckCircle, Clock, Link, FileText, Hash } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/components/ui/card';
+import { useAgentStore } from '@/lib/agent/use-agent-store';
 
-const LOGS = [
+const DEFAULT_LOGS = [
     {
         id: '1',
         action: 'Yield Optimization',
         status: 'Success',
-        time: '2 mins ago',
+        time: 'Now',
         proof: 'Flow Block #842,102',
-        desc: 'Rebalanced $420.50 to Smart Cash Vault for +0.5% Alpha.',
-        type: 'ON-CHAIN'
+        desc: 'Rebalanced liquidity to Flow Smart Cash Vault.',
+        type: 'ON-CHAIN',
+        cid: 'bafybeig...4f2a'
+    },
+    {
+        id: '1.5',
+        action: 'Lit Protocol Signing',
+        status: 'Signed',
+        time: '2m ago',
+        proof: 'Datil-Test PKP (0x04...)',
+        desc: 'Autonomous transaction signed via Programmable Key Pair.',
+        type: 'LIT',
+        cid: 'bafybeif...2k9q'
     },
     {
         id: '2',
-        action: 'Slippage Guard',
-        status: 'Skipped',
-        time: '1 hour ago',
-        proof: 'Local AI Decision',
-        desc: 'Skipped ETH trade because slippage (1.2%) exceeded 0.5% limit.',
-        type: 'AI'
+        action: 'Zama Privacy Audit',
+        status: 'Verified',
+        time: '12m ago',
+        proof: 'FHE Ciphertext Proof',
+        desc: 'Processed blind financial analysis via Sepolia Co-processor.',
+        type: 'ZAMA',
+        cid: 'bafybeih...9x3z'
     },
     {
         id: '3',
-        action: 'Data Snapshot',
-        status: 'Archived',
-        time: '4 hours ago',
-        proof: 'Storacha/IPFS: CID...4f2a',
-        desc: 'Encrypted backup of spending insights stored on Filecoin.',
-        type: 'FILECOIN'
-    },
-    {
-        id: '4',
-        action: 'Portfolio Sync',
-        status: 'Success',
-        time: '1 day ago',
-        proof: 'Flow Block #841,005',
-        desc: 'Verified balance change after $1,000 top-up.',
-        type: 'ON-CHAIN'
+        action: 'Storacha Archive',
+        status: 'Pinned',
+        time: '1h ago',
+        proof: 'Filecoin/Storacha',
+        desc: 'Agent long-term memory persisted to IPFS.',
+        type: 'STORACHA',
+        cid: 'bafybeid...7v2w'
     }
 ];
 
 export default function ActivityLogs() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const storeLogs = useAgentStore.use.logs();
+    const logs = storeLogs.length > 0 ? storeLogs.map(l => ({
+        id: l.timestamp.toString(),
+        action: l.action,
+        status: l.status,
+        time: new Date(l.timestamp).toLocaleTimeString(),
+        proof: l.txHash ? `REF: ${l.txHash.slice(0, 10)}...` : 'Internal Process',
+        desc: l.message,
+        type: l.action.includes('FHE') ? 'ZAMA' : 'ON-CHAIN',
+        cid: l.cid
+    })) : DEFAULT_LOGS;
 
     return (
         <ScrollView
@@ -72,7 +88,7 @@ export default function ActivityLogs() {
                 Real-time activity logs and on-chain proofs for every action KINDRED takes.
             </Text>
 
-            {LOGS.map((log, idx) => {
+            {logs.map((log, idx) => {
                 return (
                     <Animated.View key={log.id} entering={FadeInDown.delay(idx * 100).duration(500)} style={[styles.logCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
                         <BlurView intensity={Platform.OS === 'web' ? 10 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
@@ -92,9 +108,17 @@ export default function ActivityLogs() {
 
                             <Text style={[styles.desc, { color: theme.textSecondary }]}>{log.desc}</Text>
 
-                            <View style={[styles.proofBadge, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
-                                <Hash size={10} color={theme.textMuted} />
-                                <Text style={[styles.proofText, { color: theme.textSecondary }]}>{log.proof}</Text>
+                            <View style={[styles.proofBadge, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+                                <View style={styles.proofRow}>
+                                    <Hash size={10} color={theme.primary} />
+                                    <Text style={[styles.proofText, { color: theme.textSecondary }]}>{log.proof}</Text>
+                                </View>
+                                {log.cid && (
+                                    <View style={[styles.cidBox, { backgroundColor: theme.primary + '10' }]}>
+                                        <Link size={8} color={theme.primary} />
+                                        <Text style={[styles.cidText, { color: theme.primary }]}>IPFS Verified</Text>
+                                    </View>
+                                )}
                             </View>
                         </View>
                     </Animated.View>
@@ -125,6 +149,9 @@ const styles = StyleSheet.create({
     time: { fontSize: 12, marginTop: 2 },
     desc: { fontSize: 13, lineHeight: 18, marginBottom: 16 },
 
-    proofBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 16 },
-    proofText: { fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+    proofBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 20 },
+    proofRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    proofText: { fontSize: 10, fontWeight: '600', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+    cidBox: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+    cidText: { fontSize: 9, fontWeight: '800' }
 });

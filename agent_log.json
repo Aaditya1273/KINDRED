@@ -1,5 +1,21 @@
 [
     {
+        "timestamp": "2026-03-29T10:15:00Z",
+        "action": "SLIPPAGE_GUARD_AUTONOMY",
+        "status": "RESCHEDULED",
+        "agent_id": "kindred-alpha-001",
+        "details": {
+            "intent": "Swap 100 USDC for FLOW",
+            "reason": "Current slippage on Flow native pool (0.84%) exceeds User-Defined Safety Guardrail (0.5%).",
+            "action_taken": "Task deferred to next low-volatility window (Est. 2 hours)."
+        },
+        "proof": {
+            "type": "AutonomousReschedule",
+            "standard": "ERC-8004",
+            "vault": "0xaf83ba759d6fff9e.KindredAgentVault"
+        }
+    },
+    {
         "timestamp": "2026-03-28T08:25:12Z",
         "action": "BLIND_FINANCIAL_ANALYSIS",
         "status": "SUCCESS",

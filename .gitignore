@@ -15,6 +15,10 @@ yarn-error.log
 .DS_Store
 /ios
 /android
+agent.json
+agent_log.json
+.json
+
 /derive_flow_key.js
 /flow.json
 # @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb

@@ -5,6 +5,7 @@ import { BitcoinAdapter } from '@reown/appkit-bitcoin-react-native';
 import { arbitrum as arbitrumChain, mainnet as mainnetChain, polygon as polygonChain, type Chain } from '@wagmi/core/chains';
 import { setStringAsync } from 'expo-clipboard';
 import { storage } from './appkit-storage';
+import { Platform } from 'react-native';
 
 
 // 1. Get projectId at https://dashboard.reown.com
@@ -14,7 +15,7 @@ export const projectId = process.env.EXPO_PUBLIC_PROJECT_ID ?? 'c3e1075b6fe74686
 const metadata = {
     name: 'KINDRED',
     description: 'Sovereign AI Hedge Fund',
-    url: 'https://kindred.finance',
+    url: Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : 'https://kindred.finance',
     icons: ['https://avatars.githubusercontent.com/u/179229932'],
     redirect: {
         native: 'kindred://'
@@ -46,5 +47,5 @@ export const appkit = createAppKit({
     },
     storage,
     defaultNetwork: mainnetChain,
-    enableAnalytics: true
+    enableAnalytics: false
 });

@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
-import { Shield, ChevronRight, LogOut, Github, Globe, Heart, Share2, Info, Moon, Sun, Smartphone } from 'lucide-react-native';
+import { Shield, ChevronRight, LogOut, Github, Globe, Heart, Share2, Info, Moon, Sun, Smartphone, Lock, UserCheck, Database } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAuthStore as useAuth } from '@/features/auth/use-auth-store';
+import { useAgentStore } from '@/lib/agent/use-agent-store';
 import { useSelectedTheme } from '@/lib/hooks/use-selected-theme';
 import { useAccount } from '@reown/appkit-react-native';
 
@@ -52,6 +53,7 @@ const SettingSection = ({ title, children }: any) => {
 export default function RebornSettings() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const isWorldIDVerified = useAgentStore.use.isWorldIDVerified();
     const signOut = useAuth.use.signOut();
     const { selectedTheme, setSelectedTheme } = useSelectedTheme();
     const { address, isConnected } = useAccount();
@@ -75,8 +77,8 @@ export default function RebornSettings() {
                     </View>
                     <View>
                         <Text style={[styles.profileName, { color: theme.textPrimary }]}>{isConnected ? truncatedAddress : 'KINDRED USER'}</Text>
-                        <Text style={[styles.profileStatus, { color: isConnected ? theme.positive : theme.primary }]}>
-                            {isConnected ? 'Identity Verified' : 'Wallet Disconnected'}
+                        <Text style={[styles.profileStatus, { color: isWorldIDVerified ? theme.positive : theme.primary }]}>
+                            {isWorldIDVerified ? 'Identity Verified (World ID)' : 'Identity Pending'}
                         </Text>
                     </View>
                 </Animated.View>

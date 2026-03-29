@@ -1,1 +1,2 @@
-export { TransactionsScreen as default } from '@/features/transactions/transactions-screen';
+import RebornHistory from '@/features/reborn/History';
+export default RebornHistory;

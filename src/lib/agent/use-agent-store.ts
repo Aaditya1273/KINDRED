@@ -5,12 +5,11 @@
 
 import { create } from 'zustand';
 import { createSelectors } from '@/lib/utils';
-import { runAgentCycle, type AgentLog } from './lit-agent';
+import { runAgentCycle } from './lit-agent';
 import { saveAgentLogs, loadAgentLogs, getLatestCID } from './storacha-memory';
 import { fetchPortfolio, type PortfolioData } from './portfolio';
 import { fetchTransactions, type Transaction } from './transactions';
-
-type AgentStatus = 'idle' | 'running' | 'error';
+import { type AgentLog, type AgentStatus } from './agent-types';
 
 type AgentState = {
   logs: AgentLog[];
@@ -20,8 +19,15 @@ type AgentState = {
   latestCID: string;
   lastRun: number | null;
   error: string | null;
+  worldIDProof: any | null;
+  isPaused: boolean;
+  isWorldIDVerified: boolean;
 
   runCycle: (address: string) => Promise<void>;
+  addLog: (log: AgentLog) => void;
+  setWorldIDProof: (proof: any) => void;
+  setWorldIDVerified: (verified: boolean) => void;
+  togglePause: () => void;
   loadMemory: () => void;
   refreshPortfolio: (address: string) => Promise<void>;
   refreshTransactions: (address: string) => Promise<void>;
@@ -47,12 +53,22 @@ const DEFAULT_ACTIONS = [
 
 const _useAgentStore = create<AgentState>((set, get) => ({
   logs: [],
-  portfolio: null,
+  portfolio: {
+    totalUSD: 0,
+    change24h: 0,
+    yieldAPY: 0,
+    lastUpdated: Date.now(),
+    tokens: [],
+    history: [],
+  },
   transactions: [],
   status: 'idle',
   latestCID: '',
   lastRun: null,
   error: null,
+  isPaused: false,
+  isWorldIDVerified: false,
+  worldIDProof: null,
 
   loadMemory: () => {
     const logs = loadAgentLogs();
@@ -60,7 +76,30 @@ const _useAgentStore = create<AgentState>((set, get) => ({
     set({ logs, latestCID: cid });
   },
 
+  setWorldIDVerified: (verified: boolean) => {
+    set({ isWorldIDVerified: verified });
+  },
+
+  togglePause: () => {
+    set({ isPaused: !get().isPaused });
+  },
+
+  addLog: (log: AgentLog) => {
+    set((state) => ({
+      logs: [log, ...state.logs]
+    }));
+  },
+
+  setWorldIDProof: (proof: any) => {
+    set({ worldIDProof: proof, isWorldIDVerified: true });
+  },
+
   runCycle: async (address: string) => {
+    // Production Check: In a real-world scenario, we check the isVerified mapping 
+    // on the Sepolia ConfidentialAlpha contract before allowing execution.
+    if (!get().worldIDProof && process.env.NODE_ENV === 'production') {
+      throw new Error('On-Chain World ID Verification required for autonomous execution.');
+    }
     set({ status: 'running', error: null });
     try {
       const newLogs = await runAgentCycle(DEFAULT_ACTIONS);

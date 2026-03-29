@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal, TextInput } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal, TextInput, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Spacing, Radius, useAppTheme } from '@/theme/tokens';
-import { Zap, Shield, TrendingUp, PieChart, ArrowUpRight, ArrowDownLeft, Wallet, HelpCircle, Bell, Sliders, Plus, Pause, Activity, TrendingDown } from 'lucide-react-native';
+import { Zap, Shield, TrendingUp, PieChart, ArrowUpRight, ArrowDownLeft, Wallet, HelpCircle, Bell, Sliders, Plus, Pause, Activity, TrendingDown, Globe, Lock } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeIn, FadeInRight } from 'react-native-reanimated';
 import { useAgentStore } from '@/lib/agent/use-agent-store';
 import { useAccount } from '@reown/appkit-react-native';
@@ -13,19 +13,77 @@ import { Svg, Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-nati
 import { BlurView } from 'expo-blur';
 import { AppHeader } from '@/components/reborn/AppHeader';
 
-const WealthChart = ({ color }: { color: string }) => {
+// Import local coin assets
+const BTC_LOGO = require('../../coins/btc.png');
+const ETH_LOGO = require('../../coins/eth.png');
+const FLOW_LOGO = require('../../coins/flow.png');
+const USDC_LOGO = require('../../coins/usdc.png');
+const USDT_LOGO = require('../../coins/usdt.png');
+
+const COIN_LOGOS: Record<string, any> = {
+    BTC: BTC_LOGO,
+    ETH: ETH_LOGO,
+    FLOW: FLOW_LOGO,
+    USDC: USDC_LOGO,
+    USDT: USDT_LOGO,
+};
+
+/**
+ * Generates a smooth SVG path from a series of data points.
+ */
+const getCurvePath = (data: number[], width: number, height: number) => {
+    if (!data.length) return "";
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
+
+    const points = data.map((val, i) => ({
+        x: (i / (data.length - 1)) * width,
+        y: height - ((val - min) / range) * height * 0.8 - (height * 0.1),
+    }));
+
+    let d = `M ${points[0].x} ${points[0].y}`;
+
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i + 1];
+        const cp1x = p0.x + (p1.x - p0.x) / 2;
+        const cp1y = p0.y;
+        const cp2x = p0.x + (p1.x - p0.x) / 2;
+        const cp2y = p1.y;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+    }
+
+    return d;
+};
+
+const WealthChart = ({ color, total, change, data, period, onPeriodChange }: {
+    color: string,
+    total: string,
+    change: string,
+    data: number[],
+    period: string,
+    onPeriodChange: (p: string) => void
+}) => {
     const theme = useAppTheme();
+    const path = React.useMemo(() => getCurvePath(data, 100, 40), [data]);
+    const fillPath = React.useMemo(() => `${path} L 100 40 L 0 40 Z`, [path]);
+
     return (
         <View style={styles.chartContainer}>
             <View style={styles.chartHeader}>
                 <View>
-                    <Text style={[styles.chartValue, { color: theme.textPrimary }]}>$42,840.50</Text>
-                    <Text style={[styles.chartLabel, { color: theme.positive }]}>+12.4% (7D)</Text>
+                    <Text style={[styles.chartValue, { color: theme.textPrimary }]}>{total}</Text>
+                    <Text style={[styles.chartLabel, { color: theme.positive }]}>{change} ({period})</Text>
                 </View>
                 <View style={styles.chartActions}>
                     {['1W', '1M', '1Y', 'ALL'].map((p) => (
-                        <Pressable key={p} style={[styles.timeBtn, p === '1W' && { backgroundColor: theme.primary + '20' }]}>
-                            <Text style={[styles.timeBtnText, { color: p === '1W' ? theme.primary : theme.textMuted }]}>{p}</Text>
+                        <Pressable
+                            key={p}
+                            onPress={() => onPeriodChange(p)}
+                            style={[styles.timeBtn, period === p && { backgroundColor: theme.primary + '20' }]}
+                        >
+                            <Text style={[styles.timeBtnText, { color: period === p ? theme.primary : theme.textMuted }]}>{p}</Text>
                         </Pressable>
                     ))}
                 </View>
@@ -34,22 +92,26 @@ const WealthChart = ({ color }: { color: string }) => {
                 <Svg height="100%" width="100%" viewBox="0 0 100 40">
                     <Defs>
                         <SvgGradient id="gradWealth" x1="0" y1="0" x2="0" y2="1">
-                            <Stop offset="0" stopColor={color} stopOpacity="0.15" />
+                            <Stop offset="0" stopColor={color} stopOpacity="0.2" />
                             <Stop offset="1" stopColor={color} stopOpacity="0" />
                         </SvgGradient>
                     </Defs>
-                    <Path
-                        d="M0 38 Q 15 35, 25 25 T 45 30 T 65 15 T 85 20 T 100 8 L 100 40 L 0 40 Z"
-                        fill="url(#gradWealth)"
-                    />
-                    <Path
-                        d="M0 38 Q 15 35, 25 25 T 45 30 T 65 15 T 85 20 T 100 8"
-                        fill="none"
-                        stroke={color}
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
+                    {data.length > 0 ? (
+                        <>
+                            <Path
+                                d={fillPath}
+                                fill="url(#gradWealth)"
+                            />
+                            <Path
+                                d={path}
+                                fill="none"
+                                stroke={color}
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </>
+                    ) : null}
                 </Svg>
                 <View style={[styles.gridLine, { top: '30%', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]} />
                 <View style={[styles.gridLine, { top: '60%', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]} />
@@ -117,6 +179,26 @@ const Card = ({ children, style }: any) => {
     );
 };
 
+const AssetItem = ({ symbol, name, balance, value, change, isLast }: any) => {
+    const theme = useAppTheme();
+    const isPos = change.startsWith('+');
+    return (
+        <View style={[styles.assetItem, !isLast && { borderBottomColor: theme.border + '15', borderBottomWidth: 1 }]}>
+            <View style={styles.assetIconBox}>
+                <Image source={COIN_LOGOS[symbol] || ETH_LOGO} style={styles.assetImage} />
+            </View>
+            <View style={{ flex: 1 }}>
+                <Text style={[styles.assetName, { color: theme.textPrimary }]}>{name}</Text>
+                <Text style={[styles.assetFull, { color: theme.textMuted }]}>{symbol}</Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+                <Text style={[styles.assetVal, { color: theme.textPrimary }]}>{value}</Text>
+                <Text style={[styles.assetChange, { color: isPos ? theme.positive : theme.negative }]}>{change}</Text>
+            </View>
+        </View>
+    );
+};
+
 export default function RebornDashboard() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
@@ -124,11 +206,27 @@ export default function RebornDashboard() {
     const portfolio = useAgentStore.use.portfolio();
     const loadMemory = useAgentStore.use.loadMemory();
     const refreshPortfolio = useAgentStore.use.refreshPortfolio();
+    const isPaused = useAgentStore.use.isPaused();
+    const isWorldIDVerified = useAgentStore.use.isWorldIDVerified();
+    const togglePause = useAgentStore.use.togglePause();
 
     const [selectedAction, setSelectedAction] = React.useState<string | null>(null);
     const [modalVisible, setModalVisible] = React.useState(false);
+    const [isProcessing, setIsProcessing] = React.useState(false);
     const [amount, setAmount] = React.useState('');
     const [selectedToken, setSelectedToken] = React.useState('USDC');
+    const [selectedPeriod, setSelectedPeriod] = React.useState('1W');
+
+    const chartData = React.useMemo(() => {
+        if (!portfolio?.history) return [];
+        const history = portfolio.history;
+        if (selectedPeriod === '1W') return history.slice(-7).map(h => h.value);
+        if (selectedPeriod === '1M') return history.slice(-30).map(h => h.value);
+        return history.map(h => h.value);
+    }, [portfolio?.history, selectedPeriod]);
+
+    const displayTotal = portfolio ? `$${portfolio.totalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '---';
+    const displayChange = portfolio ? `${portfolio.change24h >= 0 ? '+' : ''}${portfolio.change24h.toFixed(1)}%` : '--';
 
     React.useEffect(() => {
         loadMemory();
@@ -136,9 +234,29 @@ export default function RebornDashboard() {
     }, [address]);
 
     const handleAction = (label: string) => {
+        if (label === 'Pause AI' && isPaused) {
+            togglePause();
+            return;
+        }
         setSelectedAction(label);
         setAmount('');
         setModalVisible(true);
+    };
+
+    const handleConfirmAction = async () => {
+        setIsProcessing(true);
+        // Simulate real on-chain/engine delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        if (selectedAction === 'Pause AI') {
+            togglePause();
+        } else if (selectedAction === 'Add Cash') {
+            console.log('[DASHBOARD] Depositing', amount, selectedToken);
+            // In production, trigger Flow Vault deposit here
+        }
+
+        setIsProcessing(false);
+        setModalVisible(false);
     };
 
     const renderModalBody = () => {
@@ -162,7 +280,7 @@ export default function RebornDashboard() {
                         </View>
                     </View>
 
-                    <Text style={[styles.inputLabel, { color: theme.textMuted, marginTop: 20 }]}>Select Asset</Text>
+                    <Text style={[styles.inputLabel, { color: theme.textMuted, marginTop: 24, fontSize: 10, letterSpacing: 1.5 }]}>DEPOSIT SOURCE</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tokenRow}>
                         {tokens.map(t => (
                             <Pressable
@@ -170,18 +288,21 @@ export default function RebornDashboard() {
                                 onPress={() => setSelectedToken(t)}
                                 style={[
                                     styles.tokenChip,
-                                    { borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' },
-                                    selectedToken === t && { backgroundColor: theme.primary + '20', borderColor: theme.primary }
+                                    { borderColor: theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+                                    selectedToken === t && { backgroundColor: theme.primary + '15', borderColor: theme.primary }
                                 ]}
                             >
-                                <Text style={[styles.tokenChipText, { color: selectedToken === t ? theme.primary : theme.textSecondary }]}>{t}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Image source={COIN_LOGOS[t]} style={{ width: 18, height: 18, marginRight: 8, borderRadius: 9 }} />
+                                    <Text style={[styles.tokenChipText, { color: selectedToken === t ? theme.primary : theme.textSecondary }]}>{t}</Text>
+                                </View>
                             </Pressable>
                         ))}
                     </ScrollView>
 
-                    {selectedAction === 'Withdraw' && parseFloat(amount) > 42840 && (
+                    {selectedAction === 'Withdraw' && parseFloat(amount) > (portfolio?.totalUSD || 0) && (
                         <Animated.View entering={FadeIn.duration(400)} style={styles.errorContainer}>
-                            <Text style={[styles.errorText, { color: theme.negative }]}>Insufficient balance. Limit: $42,840.50</Text>
+                            <Text style={[styles.errorText, { color: theme.negative }]}>Insufficient balance. Limit: {displayTotal}</Text>
                         </Animated.View>
                     )}
                 </View>
@@ -252,12 +373,13 @@ export default function RebornDashboard() {
                 <AppHeader />
 
                 {/* Greeting */}
-                <View style={{ marginBottom: 24 }}>
-                    <Text style={[styles.heroGreeting, { color: theme.textSecondary }]}>Good morning KINDRED</Text>
-                    <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Your Workspace</Text>
+                <View style={{ marginBottom: 32 }}>
+                    <Animated.Text entering={FadeInDown.delay(100)} style={[styles.heroGreeting, { color: theme.textSecondary }]}>SYNCED & SECURE</Animated.Text>
+                    <Animated.Text entering={FadeInDown.delay(200)} style={[styles.heroTitle, { color: theme.textPrimary }]}>Kindred Alpha</Animated.Text>
                 </View>
 
-                {/* Hero Glass Card */}
+                {/* greeting content ends here, moving straight to hero card */}
+
                 <Animated.View
                     entering={FadeInDown.delay(100).duration(800)}
                     style={[styles.heroCard, { borderColor: theme.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }]}
@@ -273,26 +395,37 @@ export default function RebornDashboard() {
                     <View style={styles.heroInner}>
                         <View style={styles.heroHeader}>
                             <View>
-                                <Text style={[styles.heroLabel, { color: theme.textSecondary }]}>NET WORTH</Text>
-                                <Text style={[styles.heroValue, { color: theme.textPrimary }]}>$42,840.50</Text>
+                                <View style={styles.heroLabelRow}>
+                                    <Text style={[styles.heroLabel, { color: theme.textSecondary, letterSpacing: 2 }]}>TOTAL ASSETS</Text>
+                                    <Shield size={10} color={theme.positive} />
+                                </View>
+                                <Text style={[styles.heroValue, { color: theme.textPrimary }]}>{displayTotal}</Text>
                             </View>
-                            <View style={[styles.statusBadge, { backgroundColor: theme.positive + '15' }]}>
-                                <View style={[styles.statusDot, { backgroundColor: theme.positive }]} />
-                                <Text style={[styles.statusText, { color: theme.positive }]}>AI: OPTIMIZING</Text>
+                            <View style={[styles.statusBadge, { backgroundColor: isWorldIDVerified ? theme.positive + '15' : theme.primary + '15' }]}>
+                                <View style={[styles.statusDot, { backgroundColor: isWorldIDVerified ? theme.positive : theme.primary }]} />
+                                <Text style={[styles.statusText, { color: isWorldIDVerified ? theme.positive : theme.primary }]}>
+                                    {isWorldIDVerified ? 'WORLD ID VERIFIED' : 'IDENTITY PENDING'}
+                                </Text>
                             </View>
                         </View>
 
                         <View style={styles.heroStats}>
                             <View style={styles.statItem}>
-                                <TrendingUp size={16} color={theme.positive} />
-                                <Text style={[styles.statNum, { color: theme.positive }]}>+12.4%</Text>
-                                <Text style={[styles.statDesc, { color: theme.textMuted }]}>Weekly</Text>
+                                <View style={{ width: 22, height: 22, borderRadius: 11, overflow: 'hidden', backgroundColor: '#00EF8B20' }}>
+                                    <Image source={FLOW_LOGO} style={{ width: '100%', height: '100%', resizeMode: 'contain' }} />
+                                </View>
+                                <View>
+                                    <Text style={[styles.statNum, { color: theme.textPrimary, fontSize: 13 }]}>FLOW</Text>
+                                    <Text style={[styles.statDesc, { color: theme.textMuted, fontSize: 10 }]}>Mainnet Ready</Text>
+                                </View>
                             </View>
                             <View style={styles.statDivider} />
                             <View style={styles.statItem}>
-                                <Shield size={16} color={theme.primary} />
-                                <Text style={[styles.statNum, { color: theme.textPrimary }]}>98%</Text>
-                                <Text style={[styles.statDesc, { color: theme.textMuted }]}>Security</Text>
+                                <Lock size={14} color={theme.textMuted} />
+                                <View>
+                                    <Text style={[styles.statNum, { color: theme.textPrimary, fontSize: 13 }]}>FHE</Text>
+                                    <Text style={[styles.statDesc, { color: theme.textMuted, fontSize: 10 }]}>Private Alpha</Text>
+                                </View>
                             </View>
                         </View>
                     </View>
@@ -306,7 +439,7 @@ export default function RebornDashboard() {
                     <QuickActionButton icon={Plus} label="Add Cash" delay={100} onPress={() => handleAction('Add Cash')} />
                     <QuickActionButton icon={ArrowDownLeft} label="Exchange" delay={200} onPress={() => handleAction('Exchange')} />
                     <QuickActionButton icon={ArrowUpRight} label="Withdraw" delay={300} onPress={() => handleAction('Withdraw')} />
-                    <QuickActionButton icon={Pause} label="Pause AI" delay={400} onPress={() => handleAction('Pause AI')} />
+                    <QuickActionButton icon={isPaused ? Activity : Pause} label={isPaused ? "Resume AI" : "Pause AI"} delay={400} onPress={() => handleAction('Pause AI')} hasBorder={isPaused} />
                 </View>
 
                 {/* Quick Action Modal */}
@@ -342,14 +475,16 @@ export default function RebornDashboard() {
                                 {renderModalBody()}
 
                                 <Pressable
-                                    onPress={() => setModalVisible(false)}
+                                    onPress={handleConfirmAction}
+                                    disabled={isProcessing}
                                     style={[
                                         styles.modalActionBtn,
-                                        { backgroundColor: selectedAction === 'Pause AI' ? theme.negative : theme.primary }
+                                        { backgroundColor: selectedAction === 'Pause AI' ? theme.negative : theme.primary },
+                                        isProcessing && { opacity: 0.6 }
                                     ]}
                                 >
                                     <Text style={[styles.modalActionBtnText, { color: '#fff' }]}>
-                                        {selectedAction === 'Pause AI' ? 'Confirm System Halt' : `Confirm ${selectedAction}`}
+                                        {isProcessing ? 'Verifying...' : selectedAction === 'Pause AI' ? 'Confirm System Halt' : `Confirm ${selectedAction}`}
                                     </Text>
                                 </Pressable>
                             </View>
@@ -363,39 +498,73 @@ export default function RebornDashboard() {
                 </View>
                 <Animated.View entering={FadeInDown.delay(450).duration(600)}>
                     <Card style={styles.chartCard}>
-                        <WealthChart color={theme.primary} />
+                        <WealthChart
+                            color={theme.primary}
+                            total={displayTotal}
+                            change={displayChange}
+                            data={chartData}
+                            period={selectedPeriod}
+                            onPeriodChange={setSelectedPeriod}
+                        />
                     </Card>
                 </Animated.View>
+
+                {/* Assets Section */}
+                <View style={styles.sectionHeader}>
+                    <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Portfolio Breakdown</Text>
+                </View>
+                <View style={[styles.assetCard, { backgroundColor: theme.surface, borderColor: theme.border, borderRadius: 28, borderWidth: 1, padding: 4 }]}>
+                    {portfolio?.tokens && portfolio.tokens.length > 0 ? (
+                        portfolio.tokens.map((token, idx) => (
+                            <React.Fragment key={token.symbol}>
+                                <AssetItem
+                                    logo={COIN_LOGOS[token.symbol]}
+                                    name={token.symbol}
+                                    full={token.name}
+                                    amount={token.balance.toFixed(token.symbol === 'FLOW' ? 2 : 4)}
+                                    val={`$${token.usdValue.toFixed(2)}`}
+                                    change={`${token.change24h >= 0 ? '+' : ''}${token.change24h.toFixed(2)}%`}
+                                    isLast={idx === portfolio.tokens.length - 1}
+                                />
+                                {idx < portfolio.tokens.length - 1 && <View style={styles.assetDivider} />}
+                            </React.Fragment>
+                        ))
+                    ) : (
+                        <View style={{ padding: 24, alignItems: 'center' }}>
+                            <Text style={{ color: theme.textMuted }}>No assets found in Flow EVM</Text>
+                        </View>
+                    )}
+                </View>
 
                 {/* Agent Insights */}
                 <View style={styles.sectionHeader}>
                     <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Agent Insights</Text>
-                    <View style={[styles.badge, { backgroundColor: theme.positive + '15' }]}>
-                        <Text style={[styles.badgeText, { color: theme.positive }]}>3 new</Text>
-                    </View>
+                    <Pressable onPress={() => router.push('/history')} style={[styles.badge, { backgroundColor: theme.primary + '15' }]}>
+                        <Text style={[styles.badgeText, { color: theme.primary }]}>View History</Text>
+                    </Pressable>
                 </View>
 
                 <Animated.View entering={FadeInRight.delay(500).duration(600)} style={[styles.notifCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                    <NotificationItem
-                        icon={TrendingUp}
-                        title="Smart Cash Opportunity"
-                        desc="KINDRED detected a +4.2% yield increase on FLOW. Autonomy protocol ready."
-                        time="Now"
-                    />
-                    <View style={styles.notifDivider} />
-                    <NotificationItem
-                        icon={Activity}
-                        title="Live Log"
-                        desc="Shifted funds to vault via Flow AA."
-                        time="1m ago"
-                    />
-                    <View style={styles.notifDivider} />
-                    <NotificationItem
-                        icon={Shield}
-                        title="Risk Guard"
-                        desc="Skipped trade due to high slippage risk."
-                        time="5m ago"
-                    />
+                    {useAgentStore.getState().logs.length > 0 ? (
+                        useAgentStore.getState().logs.slice(0, 3).map((log, idx) => (
+                            <React.Fragment key={idx}>
+                                <NotificationItem
+                                    icon={log.status === 'Success' ? TrendingUp : Shield}
+                                    title={log.action.replace('_', ' ')}
+                                    desc={log.message}
+                                    time="Just now"
+                                />
+                                {idx < 2 && idx < useAgentStore.getState().logs.length - 1 && <View style={styles.notifDivider} />}
+                            </React.Fragment>
+                        ))
+                    ) : (
+                        <NotificationItem
+                            icon={Lock}
+                            title="Privacy Encrypted"
+                            desc="Zama FHE initialized. Agent monitoring on-chain alpha."
+                            time="Ready"
+                        />
+                    )}
                 </Animated.View>
             </ScrollView>
         </View>
@@ -421,7 +590,8 @@ const styles = StyleSheet.create({
     },
     heroInner: { padding: 24 },
     heroHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-    heroLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
+    heroLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+    heroLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
     heroValue: { fontSize: 36, fontWeight: '900' },
     statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6 },
     statusDot: { width: 6, height: 6, borderRadius: 3 },
@@ -557,4 +727,13 @@ const styles = StyleSheet.create({
     warningTitle: { fontSize: 18, fontWeight: '800', marginBottom: 8 },
     warningDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, fontWeight: '500' },
     confirmInstruction: { fontSize: 12, textAlign: 'center', marginTop: 24, fontWeight: '500' },
+    assetCard: { borderRadius: 28, borderWidth: 1, marginBottom: 32, overflow: 'hidden' },
+    assetItem: { flexDirection: 'row', alignItems: 'center', padding: 20, gap: 16 },
+    assetIconBox: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', backgroundColor: 'rgba(0,0,0,0.02)' },
+    assetImage: { width: '100%', height: '100%', resizeMode: 'contain' },
+    assetName: { fontSize: 16, fontWeight: '800' },
+    assetFull: { fontSize: 12, fontWeight: '500', marginTop: 2 },
+    assetVal: { fontSize: 16, fontWeight: '800' },
+    assetChange: { fontSize: 12, fontWeight: '700', marginTop: 2 },
+    assetDivider: { height: 1, width: '100%', backgroundColor: 'rgba(0,0,0,0.02)' },
 });
